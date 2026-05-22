@@ -1,0 +1,2 @@
+model_type,distance_km,static_load_per_wheel_N,max_load_N_seen,rock_events_count,side_impacts_count,fracture_flags_SF_lt_1,minimum_safety_factor,final_wear_mm,median_traction_margin_mu,minimum_traction_margin_mu
+First-order screening: prescribed thermal schedule + Archard wear + stochastic rock/side events + local strip stress check,1000.0,127.575,612.36,2429,961,0,3.13541054281795,9.004838683322212,0.1860297657337977,0.03602976573379768

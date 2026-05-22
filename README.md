@@ -42,7 +42,7 @@ A small collection of independent research papers by **William Duckworth**.
 
 > A paper design study for a one-piece composite rover wheel engineered to the MicroChariot interface envelope. The design pairs a carbon-nanotube-reinforced PEKK structural cage with a silicon-carbide-filled PEKK wear tread, joined by a co-molded mechanical and chemical bond.
 
-**Status:** Paper design only. No prototype has been built or tested. Dimensions, material choices, and process windows are derived from published PEKK / CNT/CF data sheets and design intent — they have not been validated by FEA, autoclave trials, NDI, or any physical test. The document is a specification of design intent, not a qualified part.
+**Status:** Paper design + first-order Python screening analysis (see [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/)). No FEA, no fatigue analysis, no physical prototype. Wear coefficients, contact assumptions, and the thermal schedule are estimated — not derived from coupon tests or a true thermal model. Intended for design-direction screening, not qualification.
 
 **Highlights**
 
@@ -53,7 +53,20 @@ A small collection of independent research papers by **William Duckworth**.
 - **Mass target (design intent):** 2.21–2.30 kg, with ~80–120 g optimization margin identified.
 - Includes tolerances, a proposed manufacturing sequence (additive core → autoclave skins → machining → compression-molded tread → top-coat → NDI), and a full critical-dimensions table.
 
-**Open work before this would be a real engineering artifact:** FEA on the rib lattice under lunar loading, thermal-cycling analysis against PEKK Tg margins, mass calculation derivation, prototype build and bench test.
+### Screening analysis
+
+A reproducible Python screening model runs 50,000 segments (20 m each = 1000 km total) of stochastic lunar driving and reports cumulative wear, a local strip-stress safety factor, and traction margin under temperature-modulated wear coefficients. Headline numbers from the latest run:
+
+| Metric | Value |
+|---|---|
+| Final cumulative wear | 9.0 mm (of 9.0 mm nominal lug height) |
+| Minimum safety factor | 3.14 |
+| Fracture flags (SF < 1) | 0 |
+| Min traction margin on a 20° slope | μ = +0.036 (positive) |
+
+Full code, summary CSV, per-segment records, plots, and an honest list of what the model does **not** capture (no FEA, no real thermo, no fatigue, no lug-shear check, no rib-lattice analysis): [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/).
+
+**Open work before this would be a real engineering artifact:** sensitivity sweep on wear coefficient and contact area, lug-shear check at the SiC-PEKK / outer-skin keying interface, Miner's-rule fatigue accumulator on the skin, FEA on the rib lattice under lunar loading, a real thermal model (radiation balance + 1D conduction), coupon-test wear coefficients against JSC-1A regolith simulant, prototype build and bench test.
 
 ---
 
@@ -67,7 +80,16 @@ A small collection of independent research papers by **William Duckworth**.
 │   └── aurora-mono-build-spec.png
 └── papers/
     ├── riemann-hypothesis-numerical-simulation.pdf
-    └── aurora-mono-wheel-build-spec.pdf
+    ├── aurora-mono-wheel-build-spec.pdf
+    └── aurora-mono-simulations/
+        ├── README.md
+        ├── aurora_mono_screening_model.py
+        ├── aurora_mono_screening_summary.csv
+        ├── aurora_mono_screening_records.csv
+        └── plots/
+            ├── wear_vs_distance.png
+            ├── safety_factor_running_min.png
+            └── thermal_cycle.png
 ```
 
 ## Citing
