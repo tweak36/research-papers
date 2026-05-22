@@ -74,18 +74,65 @@ Outputs written to the current directory:
 - `aurora_mono_screening_records.csv` — 50,000-row per-segment log (temperature, terrain, speed, load, stress, safety factor, cumulative wear, traction margin)
 - `aurora_mono_screening_summary.csv` — 1-row mission summary
 
+## Companion analyses
+
+Two follow-on scripts run on top of the same screening model:
+
+### Sensitivity sweep — [`sensitivity_sweep.py`](sensitivity_sweep.py)
+
+One-at-a-time sensitivity on the four dominant parameters, ±50% and ±25%:
+
+| Parameter | Effect on wear | Effect on min SF |
+|---|---|---|
+| `wear_k_cold` | linear: 5.3 → 12.8 mm | none (no load coupling) |
+| `instant_contact_fraction` | **inverse, dominant: 18.0 → 6.0 mm** | none |
+| `payload_mass_kg` | linear: 5.1 → 12.9 mm | 5.5 → 2.2 |
+| `dynamic_spike_factor` | small: 8.5 → 9.5 mm | 6.3 → 2.1 |
+
+**Key finding:** at the worst-case end of the contact-fraction assumption (−50%, i.e. only 2% of the wheel surface in contact at any instant), cumulative wear reaches **18 mm — exceeding the 9 mm nominal lug height**. That single assumption dominates the wear answer and is the highest-priority parameter to nail down with measurement.
+
+**Robustness on stress:** the minimum safety factor stays above 2 across all ±50% perturbations, with zero fracture flags in every run.
+
+| | |
+|---|---|
+| ![Wear sensitivity](plots/sensitivity_wear.png) | ![Min SF sensitivity](plots/sensitivity_min_sf.png) |
+| Final wear vs ± parameter change | Min safety factor vs ± parameter change |
+
+Outputs: [`sensitivity_sweep_results.csv`](sensitivity_sweep_results.csv).
+
+### Lug-shear check — [`lug_shear_check.py`](lug_shear_check.py)
+
+Screening check on the SiC-PEKK tread / PEKK-CNT/CF outer-skin co-molded bond. Uses the mission's peak normal load (612 N from the worst rock event in the stochastic history), the maximum terrain traction coefficient (μ = 0.55, loose terrain), and distributes the resulting tangential force across the estimated 2 lugs in instantaneous contact. Applies a 2.5× edge-stress concentration factor.
+
+| Case | Shear stress (design) | Safety factor |
+|---|---|---|
+| Nominal (2 lugs in contact) | 0.75 MPa | **26.6** |
+| Worst plausible (1 lug bearing all load) | 1.50 MPa | **13.3** |
+
+Allowable shear is set at 20 MPa, derived conservatively as 40% of the low end of PEKK bulk shear strength (50 MPa). Anti-peel mechanical interlock from the keying grooves is **not** credited.
+
+**Verdict:** the lug-to-skin bond is not the limiting failure mode in pure shear. **Peel-mode loading is not analyzed by this check** — and peel is the mode the anti-peel keys are specifically designed to address. A peel analysis remains open work.
+
+Outputs: [`lug_shear_check_results.csv`](lug_shear_check_results.csv).
+
 ## Files in this folder
 
 ```
 aurora-mono-simulations/
 ├── README.md                              (this file)
-├── aurora_mono_screening_model.py         (the model, ~140 lines)
+├── aurora_mono_screening_model.py         (refactored model + run_screening() API)
 ├── aurora_mono_screening_summary.csv      (1-row mission summary)
 ├── aurora_mono_screening_records.csv      (50k-row per-segment log)
+├── sensitivity_sweep.py                   (±50/25% sweep on 4 params)
+├── sensitivity_sweep_results.csv          (20-row sweep result table)
+├── lug_shear_check.py                     (bond-shear screening check)
+├── lug_shear_check_results.csv            (lug-shear screening result)
 └── plots/
     ├── wear_vs_distance.png
     ├── safety_factor_running_min.png
-    └── thermal_cycle.png
+    ├── thermal_cycle.png
+    ├── sensitivity_wear.png
+    └── sensitivity_min_sf.png
 ```
 
 ## Sensitivity & assumptions to bear in mind
@@ -103,12 +150,14 @@ A formal sensitivity sweep is not yet included.
 
 In rough order of impact:
 
-1. **Sensitivity sweep** over `k`, contact area, and load assumptions — would convert single-point numbers into defensible ranges.
-2. **Lug-shear check at the SiC-PEKK / outer-skin keying interface** — likely the more critical failure mode than skin strip stress.
-3. **Miner's-rule fatigue accumulator** on the skin under cyclic loading — instantaneous SF > 1 is not the same as 1000 km of cyclic loading being safe.
-4. **Helical X-brace rib analysis** — the lattice is the wheel's structural load path and is not currently modeled.
-5. **Real thermal model** — radiation balance, 1D conduction through the sandwich wall, regolith contact, sun/shadow cycling.
-6. **Coupon-test wear coefficients** for SiC-PEKK against JSC-1A lunar regolith simulant, replacing the estimated `k(T)`.
+1. ~~Sensitivity sweep~~ — **added** (see `sensitivity_sweep.py`). Identified `instant_contact_fraction` as the dominant-but-uncertain parameter.
+2. ~~Lug-shear check~~ — **added** (see `lug_shear_check.py`). SF 13–27 in shear; the mode of concern shifts to peel.
+3. **Peel-mode bond check** at the SiC-PEKK / outer-skin interface — the anti-peel keys are specifically designed for this mode and the screening models do not yet evaluate it.
+4. **Miner's-rule fatigue accumulator** on the skin under cyclic loading — instantaneous SF > 1 is not the same as 1000 km of cyclic loading being safe.
+5. **Helical X-brace rib analysis** — the lattice is the wheel's structural load path and is not currently modeled.
+6. **Real thermal model** — radiation balance, 1D conduction through the sandwich wall, regolith contact, sun/shadow cycling.
+7. **Coupon-test wear coefficients** for SiC-PEKK against JSC-1A lunar regolith simulant, replacing the estimated `k(T)`.
+8. **Coupon-test bond shear strength** for the co-molded PEKK joint, replacing the estimated 20 MPa allowable used in the lug-shear check.
 
 ## License
 

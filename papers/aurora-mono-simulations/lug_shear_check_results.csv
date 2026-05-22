@@ -1,0 +1,2 @@
+tread_circumference_mm,lug_footprint_area_mm2,lugs_per_row_est,lugs_total_est,max_normal_load_N,max_mu,max_tangential_force_N,bond_shear_allowable_MPa,edge_stress_concentration,nominal_lugs_in_contact,nominal_shear_per_lug_N,nominal_design_shear_MPa,nominal_SF,worst_shear_per_lug_N,worst_design_shear_MPa,worst_SF
+1436.34,560.0,7,14,612.36,0.55,336.8,20.0,2.5,2,168.4,0.7518,26.6,336.8,1.5036,13.3

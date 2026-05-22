@@ -55,7 +55,7 @@ A small collection of independent research papers by **William Duckworth**.
 
 ### Screening analysis
 
-A reproducible Python screening model runs 50,000 segments (20 m each = 1000 km total) of stochastic lunar driving and reports cumulative wear, a local strip-stress safety factor, and traction margin under temperature-modulated wear coefficients. Headline numbers from the latest run:
+A reproducible Python screening model runs 50,000 segments (20 m each = 1000 km total) of stochastic lunar driving and reports cumulative wear, a local strip-stress safety factor, and traction margin under temperature-modulated wear coefficients. Headline numbers from the nominal run:
 
 | Metric | Value |
 |---|---|
@@ -64,9 +64,13 @@ A reproducible Python screening model runs 50,000 segments (20 m each = 1000 km 
 | Fracture flags (SF < 1) | 0 |
 | Min traction margin on a 20° slope | μ = +0.036 (positive) |
 
-Full code, summary CSV, per-segment records, plots, and an honest list of what the model does **not** capture (no FEA, no real thermo, no fatigue, no lug-shear check, no rib-lattice analysis): [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/).
+**Sensitivity sweep** (±50% / ±25% on the four dominant parameters): the design is robust on stress (min SF stays above 2.1 across all perturbations, zero fracture flags), but the wear answer is dominated by the `instant_contact_fraction` assumption — at the worst-case end of that assumption, predicted wear reaches 18 mm, exceeding the lug height. That assumption is the highest-priority unknown to measure.
 
-**Open work before this would be a real engineering artifact:** sensitivity sweep on wear coefficient and contact area, lug-shear check at the SiC-PEKK / outer-skin keying interface, Miner's-rule fatigue accumulator on the skin, FEA on the rib lattice under lunar loading, a real thermal model (radiation balance + 1D conduction), coupon-test wear coefficients against JSC-1A regolith simulant, prototype build and bench test.
+**Lug-shear check** at the SiC-PEKK / outer-skin co-molded bond: nominal SF 26.6, worst-plausible (single lug bearing all load) SF 13.3. Shear is not the limiting failure mode; peel-mode loading is not yet analyzed.
+
+Full code, CSVs, plots, and complete documentation of what the screening models do **not** capture (no FEA, no real thermo, no fatigue, no peel analysis, no rib-lattice analysis): [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/).
+
+**Open work before this would be a real engineering artifact:** peel-mode bond check, Miner's-rule fatigue accumulator on the skin, FEA on the rib lattice under lunar loading, a real thermal model (radiation balance + 1D conduction), coupon-test wear coefficients against JSC-1A regolith simulant, coupon-test bond shear strength, prototype build and bench test.
 
 ---
 
@@ -86,10 +90,16 @@ Full code, summary CSV, per-segment records, plots, and an honest list of what t
         ├── aurora_mono_screening_model.py
         ├── aurora_mono_screening_summary.csv
         ├── aurora_mono_screening_records.csv
+        ├── sensitivity_sweep.py
+        ├── sensitivity_sweep_results.csv
+        ├── lug_shear_check.py
+        ├── lug_shear_check_results.csv
         └── plots/
             ├── wear_vs_distance.png
             ├── safety_factor_running_min.png
-            └── thermal_cycle.png
+            ├── thermal_cycle.png
+            ├── sensitivity_wear.png
+            └── sensitivity_min_sf.png
 ```
 
 ## Citing
