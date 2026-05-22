@@ -70,9 +70,11 @@ A reproducible Python screening model runs 50,000 segments (20 m each = 1000 km 
 
 **Peel check** (the mode the anti-peel keys are designed for) — bending stress at the bond edge under eccentric loading from cresting a rock: SF 6.1 at the worst rock event with the load offset to the lug edge. SF stays ≥1.8 across a full sensitivity grid on the chemical allowable and key multiplier; SF 12–58 in any realistic non-extreme case.
 
-Full code, CSVs, plots, and complete documentation of what the screening models do **not** capture (no FEA, no fracture mechanics, no real thermo, no fatigue, no thermal-cycle stress, no rib-lattice analysis): [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/).
+**Fatigue check** — Miner's-rule cumulative damage on both skin and bond peel across ~696,000 wheel-rotation cycles over 1000 km. Every cycle, on both components, falls below the assumed endurance limit (64 MPa for the PEKK-CNT/CF skin; 2.5 MPa for the bond with anti-peel keys credited). Total damage = 0 nominally; even the most adverse sensitivity combination (no key credit + lowest plausible bond strength + lowest plausible endurance ratio) gives fatigue life >7,200 km vs 1,000 km design distance. Fatigue is not the governing failure mode under the modeled load spectrum.
 
-**Open work before this would be a real engineering artifact:** fracture-mechanics peel analysis using measured G_c, Miner's-rule fatigue accumulator on the skin and bond, thermal-cycling stress from differential CTE, FEA on the rib lattice under lunar loading, a real thermal model (radiation balance + 1D conduction), coupon-test wear coefficients against JSC-1A regolith simulant, coupon-test bond strength, prototype build and bench test.
+Full code, CSVs, plots, and complete documentation of what the screening models do **not** capture (no FEA, no fracture mechanics, no real thermo, no thermal-cycle stress, no rib-lattice analysis): [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/).
+
+**Open work before this would be a real engineering artifact:** thermal-cycling stress from differential CTE (likely the dominant *real* fatigue driver), fracture-mechanics peel analysis using measured G_c, FEA on the rib lattice under lunar loading, a real thermal model (radiation balance + 1D conduction), coupon-test wear coefficients against JSC-1A regolith simulant, coupon-test bond strength (shear / peel / G_c / S-N), prototype build and bench test.
 
 ---
 
@@ -99,12 +101,16 @@ Full code, CSVs, plots, and complete documentation of what the screening models 
         ├── peel_check.py
         ├── peel_check_results.csv
         ├── peel_check_sensitivity.csv
+        ├── fatigue_check.py
+        ├── fatigue_check_summary.csv
+        ├── fatigue_check_sensitivity.csv
         └── plots/
             ├── wear_vs_distance.png
             ├── safety_factor_running_min.png
             ├── thermal_cycle.png
             ├── sensitivity_wear.png
-            └── sensitivity_min_sf.png
+            ├── sensitivity_min_sf.png
+            └── fatigue_stress_histograms.png
 ```
 
 ## Citing

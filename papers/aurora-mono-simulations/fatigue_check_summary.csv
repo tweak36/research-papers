@@ -1,0 +1,2 @@
+distance_km,total_cycles,skin_static_MPa,skin_endurance_ratio,skin_max_stress_MPa,skin_cycles_above_endurance,skin_total_damage,skin_fatigue_SF,skin_fatigue_life_km,bond_static_MPa,bond_endurance_ratio,bond_max_peel_MPa,bond_cycles_above_endurance,bond_total_damage,bond_fatigue_SF,bond_fatigue_life_km
+1000.0,696215,160.0,0.4,51.03,0,0.0,,,10.0,0.25,1.6402,0,0.0,,

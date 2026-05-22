@@ -143,9 +143,44 @@ The model treats each lug as a rigid rectangular pad bonded to the skin and appl
 
 **Verdict:** adequate peel margin under nominal assumptions. The worst case in the entire sensitivity grid (no key credit + lowest plausible chemical allowable) still gives SF 1.8 — marginal but positive. Most realistic combinations yield SF 3–12.
 
-**This is a stress-based screening check, not fracture mechanics.** The correct next-fidelity step is a G_c-based crack-propagation analysis using a measured critical strain energy release rate for the actual co-mold bond, plus cycle-by-cycle fatigue accumulation under thermal cycling and rock-event loading.
+**This is a stress-based screening check, not fracture mechanics.** The correct next-fidelity step is a G_c-based crack-propagation analysis using a measured critical strain energy release rate for the actual co-mold bond.
 
 Outputs: [`peel_check_results.csv`](peel_check_results.csv) (the 5 named cases) and [`peel_check_sensitivity.csv`](peel_check_sensitivity.csv) (the 15-row grid).
+
+### Fatigue check — [`fatigue_check.py`](fatigue_check.py)
+
+Miner's-rule fatigue damage accumulator on both the rim skin and the lug-skin bond peel. For each segment in the mission, the screening model's recorded stress is used to compute damage per Miner's rule (`D = Σ n_i / N_f(σ_i)`); failure at `D = 1.0`, fatigue safety factor is `1/D`. Wheel circumference and segment length give ~14 stress cycles per segment, ~696,000 cycles total over 1000 km.
+
+S-N curves use a Basquin-style log-linear fit calibrated to `N_f = 1` at the static strength and `N_f = 10⁶` at a representative endurance limit. Stresses below the endurance limit accumulate zero damage (infinite-life assumption).
+
+| Component | σ_static | Endurance ratio R_e | Endurance limit | Stress range observed | Cycles above endurance | Total damage D | Fatigue SF | Implied life |
+|---|---|---|---|---|---|---|---|---|
+| Skin (PEKK-CNT/CF) | 160 MPa | 0.40 | 64 MPa | 10.6 – 51.0 MPa | **0** | 0 | ∞ | ∞ |
+| Bond peel (nominal, with keys) | 10 MPa | 0.25 | 2.5 MPa | 0.17 – 1.64 MPa | **0** | 0 | ∞ | ∞ |
+
+Every cycle, on both components, falls below the endurance limit. Visually:
+
+![Fatigue stress histograms](plots/fatigue_stress_histograms.png)
+
+**Sensitivity** on the bond, sweeping chemical allowable (3, 5, 7 MPa), key multiplier (1, 2, 3×), and endurance ratio (0.20, 0.25, 0.30) — 27 combinations:
+
+| Combination | Fatigue life |
+|---|---|
+| Most adverse (3 MPa chem × no key credit × R_e = 0.20) | ~7,200 km |
+| Adverse (3 MPa chem × no key credit × R_e = 0.25) | ~14,600 km |
+| 5 MPa chem × no key credit × R_e = 0.20 | ~161,000 km |
+| Nominal (5 MPa chem × 2× key × R_e = 0.25) | infinite |
+| Most combinations with key credit | infinite |
+
+**Verdict:** the design has enough static margin that fatigue is not the governing failure mode under the modeled load spectrum. Even the most adverse parameter combinations show fatigue life > 7× the 1000 km design distance.
+
+**Caveats this check does NOT capture:**
+- Thermal-cycling stress from differential CTE (SiC-PEKK vs PEKK-CNT/CF) — likely the dominant *real* fatigue driver and not modeled here.
+- Mean-stress effects (Goodman / Soderberg corrections).
+- Load-sequence interaction.
+- Crack-growth-based life prediction (Paris law on G_c).
+
+Outputs: [`fatigue_check_summary.csv`](fatigue_check_summary.csv) and [`fatigue_check_sensitivity.csv`](fatigue_check_sensitivity.csv).
 
 ## Files in this folder
 
@@ -162,12 +197,16 @@ aurora-mono-simulations/
 ├── peel_check.py                          (bond-peel screening check)
 ├── peel_check_results.csv                 (5 peel load/eccentricity cases)
 ├── peel_check_sensitivity.csv             (15-row sensitivity grid)
+├── fatigue_check.py                       (Miner's-rule fatigue accumulator)
+├── fatigue_check_summary.csv              (skin + bond fatigue summary)
+├── fatigue_check_sensitivity.csv          (27-row bond fatigue sensitivity)
 └── plots/
     ├── wear_vs_distance.png
     ├── safety_factor_running_min.png
     ├── thermal_cycle.png
     ├── sensitivity_wear.png
-    └── sensitivity_min_sf.png
+    ├── sensitivity_min_sf.png
+    └── fatigue_stress_histograms.png
 ```
 
 ## Sensitivity & assumptions to bear in mind
@@ -187,14 +226,14 @@ In rough order of impact:
 
 1. ~~Sensitivity sweep~~ — **added** (see `sensitivity_sweep.py`). Identified `instant_contact_fraction` as the dominant-but-uncertain parameter.
 2. ~~Lug-shear check~~ — **added** (see `lug_shear_check.py`). SF 13–27 in shear.
-3. ~~Peel-mode bond check~~ — **added** (see `peel_check.py`). SF 6.1 nominal at worst rock event + worst eccentricity; SF stays ≥1.8 across the full sensitivity grid.
-4. **Fracture-mechanics peel analysis** using G_c for the actual co-mold bond, replacing the stress-based screening check in `peel_check.py`.
-5. **Miner's-rule fatigue accumulator** on the skin and the bond under cyclic loading — instantaneous SF > 1 is not the same as 1000 km of cyclic loading being safe.
-6. **Thermal-cycling stress** at the SiC-PEKK / PEKK-CNT/CF interface from differential CTE, accumulated over the lunar diurnal cycle.
+3. ~~Peel-mode bond check~~ — **added** (see `peel_check.py`). SF 6.1 nominal; SF ≥1.8 across the full sensitivity grid.
+4. ~~Miner's-rule fatigue accumulator~~ — **added** (see `fatigue_check.py`). Skin and bond peel both stay below endurance limit on every cycle; fatigue is not the governing failure mode.
+5. **Thermal-cycling stress** at the SiC-PEKK / PEKK-CNT/CF interface from differential CTE, accumulated over the lunar diurnal cycle. Likely the dominant *real* fatigue driver and not yet modeled.
+6. **Fracture-mechanics peel analysis** using G_c (Paris-law crack growth) for the actual co-mold bond, replacing the stress-based screening check in `peel_check.py`.
 7. **Helical X-brace rib analysis** — the lattice is the wheel's structural load path and is not currently modeled.
 8. **Real thermal model** — radiation balance, 1D conduction through the sandwich wall, regolith contact, sun/shadow cycling.
 9. **Coupon-test wear coefficients** for SiC-PEKK against JSC-1A lunar regolith simulant, replacing the estimated `k(T)`.
-10. **Coupon-test bond strength** (shear, peel, and G_c) for the co-molded PEKK joint, replacing the estimated allowables in `lug_shear_check.py` and `peel_check.py`.
+10. **Coupon-test bond strength** (shear, peel, G_c, and S-N) for the co-molded PEKK joint, replacing the estimated allowables in the screening scripts.
 
 ## License
 
