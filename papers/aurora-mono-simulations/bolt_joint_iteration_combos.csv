@@ -1,0 +1,9 @@
+label,bolt_size,material,preload_factor,pad_dia_mm,n_bolts,preload_N,tension_per_bolt_N,shear_per_bolt_N,bolt_stress_MPa,yield_SF,shear_SF,separation_SF,pad_compression_MPa,pad_SF
+(P 50%) + (D 14 mm),#10-32 UNF,A286 stainless (typical aerospace),0.5,14.0,8,5949.988,306.18,205.615,535.136,1.925,40.908,27.761,43.864,3.648
+(P 50%) + (D 16 mm),#10-32 UNF,A286 stainless (typical aerospace),0.5,16.0,8,5949.988,306.18,205.615,535.136,1.925,40.908,27.761,32.555,4.915
+(P 50%) + (M Ti-6Al-4V),#10-32 UNF,Ti-6Al-4V (lightweight),0.5,12.0,8,4558.459,306.18,205.615,411.886,2.137,31.299,21.269,48.082,3.328
+(P 50%) + (D 14 mm) + (M Ti),#10-32 UNF,Ti-6Al-4V (lightweight),0.5,14.0,8,4558.459,306.18,205.615,411.886,2.137,31.299,21.269,33.606,4.761
+(P 50%) + (D 16 mm) + (M Ti),#10-32 UNF,Ti-6Al-4V (lightweight),0.5,16.0,8,4558.459,306.18,205.615,411.886,2.137,31.299,21.269,24.941,6.415
+(P 60%) + (D 16 mm),#10-32 UNF,A286 stainless (typical aerospace),0.6,16.0,8,7139.986,306.18,205.615,640.536,1.608,40.908,33.314,39.065,4.096
+(P 60%) + (D 16 mm) + (N 10),#10-32 UNF,A286 stainless (typical aerospace),0.6,16.0,10,7139.986,244.944,164.492,638.909,1.612,51.135,41.642,39.065,4.096
+(M Ti) + (N 10) + (D 14 mm) (preload nominal 70%),#10-32 UNF,Ti-6Al-4V (lightweight),0.7,14.0,10,6381.842,244.944,164.492,571.759,1.539,39.123,37.22,47.048,3.401

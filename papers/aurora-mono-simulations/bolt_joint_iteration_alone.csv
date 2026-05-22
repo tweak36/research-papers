@@ -1,0 +1,10 @@
+label,bolt_size,material,preload_factor,pad_dia_mm,n_bolts,preload_N,tension_per_bolt_N,shear_per_bolt_N,bolt_stress_MPa,yield_SF,shear_SF,separation_SF,pad_compression_MPa,pad_SF
+(P) Preload 70% -> 50% proof,#10-32 UNF,A286 stainless (typical aerospace),0.5,12.0,8,5949.988,306.18,205.615,535.136,1.925,40.908,27.761,62.76,2.549
+(P) Preload 70% -> 60% proof,#10-32 UNF,A286 stainless (typical aerospace),0.6,12.0,8,7139.986,306.18,205.615,640.536,1.608,40.908,33.314,75.312,2.124
+(D) Pad-boss 12 -> 14 mm,#10-32 UNF,A286 stainless (typical aerospace),0.7,14.0,8,8329.983,306.18,205.615,745.936,1.381,40.908,38.866,61.41,2.605
+(D) Pad-boss 12 -> 16 mm,#10-32 UNF,A286 stainless (typical aerospace),0.7,16.0,8,8329.983,306.18,205.615,745.936,1.381,40.908,38.866,45.576,3.511
+(D) Pad-boss 12 -> 18 mm,#10-32 UNF,A286 stainless (typical aerospace),0.7,18.0,8,8329.983,306.18,205.615,745.936,1.381,40.908,38.866,35.27,4.536
+(M) Ti-6Al-4V instead of A286,#10-32 UNF,Ti-6Al-4V (lightweight),0.7,12.0,8,6381.842,306.18,205.615,573.386,1.535,31.299,29.776,67.315,2.377
+(S) Upsize bolts #10-32 -> #1/4-28,#1/4-28 UNF,A286 stainless (typical aerospace),0.7,12.0,8,17326.365,306.18,205.615,741.711,1.389,85.089,80.841,212.781,0.752
+(N) More bolts 8 -> 10,#10-32 UNF,A286 stainless (typical aerospace),0.7,12.0,10,8329.983,244.944,164.492,744.309,1.384,51.135,48.582,87.864,1.821
+(N) More bolts 8 -> 12,#10-32 UNF,A286 stainless (typical aerospace),0.7,12.0,12,8329.983,204.12,137.076,743.224,1.386,61.362,58.299,87.864,1.821

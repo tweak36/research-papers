@@ -545,6 +545,81 @@ This recommendation should be validated by 3D viscoelastic FEM with the proposed
 
 Outputs: [`design_iteration_alone.csv`](design_iteration_alone.csv) and [`design_iteration_combos.csv`](design_iteration_combos.csv).
 
+## Design iteration on the hub bolt joint — [`bolt_joint_iteration_check.py`](bolt_joint_iteration_check.py)
+
+The bolt-joint check found marginal-but-positive SFs at the nominal design (A286 stainless, 70% proof preload, 12 mm pad bosses): yield SF 1.38 and pad compression SF 1.82. This script evaluates five design changes against the goal of pushing both SFs to ≥ 2.0.
+
+**Design changes modeled:**
+
+| ID | Change | Lever |
+|---|---|---|
+| (P) | Reduce preload factor: 70 → 50% of proof | Directly reduces bolt stress and pad compression |
+| (D) | Larger pad-boss diameter: 12 → 14, 16, 18 mm | Direct pad-compression improvement only |
+| (M) | Bolt material: A286 → Ti-6Al-4V | Lower σ_tensile → lower preload at same % → both SFs improve |
+| (S) | Larger bolt: #10-32 → #1/4-28 UNF | More invasive interface change |
+| (N) | More bolts: 8 → 10 or 12 | Most invasive (new bolt circle pattern) |
+
+**Each change alone:**
+
+| Change | Yield SF | Pad SF | Both ≥ 2.0? |
+|---|---|---|---|
+| Baseline | 1.38 | 1.82 | ✗ |
+| (P) Preload 70 → 50% | 1.92 | 2.55 | ✗ (yield) |
+| (P) Preload 70 → 60% | 1.61 | 2.12 | ✗ (yield) |
+| (D) Pad 12 → 14 mm | 1.38 | 2.61 | ✗ (yield) |
+| (D) Pad 12 → 16 mm | 1.38 | 3.51 | ✗ (yield) |
+| (M) Ti-6Al-4V | 1.53 | 2.38 | ✗ (yield) |
+| (S) Upsize to #1/4-28 | 1.39 | 0.75 | ✗ (actually makes pad *worse* — bigger bolt → more preload) |
+| (N) 8 → 10 bolts | 1.38 | 1.82 | ✗ (no improvement — pad sees full preload regardless of bolt count) |
+
+**Key insight from the alone-results:** **Yield SF is preload-dominated** — it depends almost entirely on the preload factor and bolt material's tensile strength, not on bolt size or bolt count. To recover yield SF ≥ 2.0 requires either lower preload or lower-tensile material (or both). Pad-boss diameter changes can't fix yield.
+
+**Stacked combinations:**
+
+| Stack | Yield SF | Pad SF | Both ≥ 2.0? |
+|---|---|---|---|
+| (P 50%) + (M Ti) | 2.14 | 3.33 | ✓ |
+| (P 50%) + (D 14 mm) | 1.92 | 3.65 | ✗ (yield, barely) |
+| (P 50%) + (D 14 mm) + (M Ti) | 2.14 | 4.76 | ✓ |
+| (P 50%) + (D 16 mm) + (M Ti) | 2.14 | 6.42 | ✓ |
+| All combined | 2.14 | 6.42 | ✓ |
+
+**Minimum-invasive stacks that hit both SFs ≥ 2.0:**
+
+| Candidate | Yield SF | Pad SF |
+|---|---|---|
+| **(P) alone, preload 48% (max viable)** | **2.00** | **2.66** |
+| (P 48%) + (D 14 mm) | 2.00 | 3.80 |
+| (M Ti) + (P 53%), no pad change | 2.02 | 3.14 |
+
+![Bolt yield and pad compression SF vs preload](plots/bolt_joint_iteration.png)
+
+**Recommendation: stack (M Ti-6Al-4V bolts) + (P 50% preload), no other changes**
+
+| Metric | Value |
+|---|---|
+| Yield SF | **2.14** (was 1.38) |
+| Pad SF | **3.33** (was 1.82) |
+| Separation SF | 21.3 (was 39 — still ample) |
+| Shear SF | 31.3 |
+
+The simplest valid alternative — and the one with least design churn — is **(P) alone at 48% preload with no hardware change** (yield SF 2.00, pad SF 2.66). This is a single number change to the bolt torque spec; no new bolts, no composite layout change, no tooling update.
+
+**Why the recommendation prefers (M Ti) + (P 50%) over (P) alone:**
+
+- The Ti switch also saves mass (~5–10 g across 10 fasteners).
+- Lower preload reduces separation SF (drops from 39 to 21–28); both are fine for static loading, but a smaller drop is more comfortable under random-vibration cyclic loads.
+- 50% is a more standard preload spec than 48% — easier to call out on a drawing and easier for assembly to hit consistently.
+
+**Mass / process / cost impact:**
+
+- Ti-6Al-4V bolts: ~40% lighter than A286 stainless; higher unit cost but smaller quantity; standard aerospace fastener spec.
+- Preload change: zero hardware change; new torque-wrench setting or load-indicating washers.
+
+**This recommendation should be validated by:** 3D FEM of the modified joint, re-running the launch-load check with the new (lower) preload (since lower preload reduces clamp force and could affect joint behavior under random vibration), and re-evaluating the bolt-joint creep + fatigue concern at +127 °C with the new preload level.
+
+Outputs: [`bolt_joint_iteration_alone.csv`](bolt_joint_iteration_alone.csv) and [`bolt_joint_iteration_combos.csv`](bolt_joint_iteration_combos.csv).
+
 ## Files in this folder
 
 ```
@@ -582,6 +657,9 @@ aurora-mono-simulations/
 ├── design_iteration_check.py              (static-peel mitigation stack)
 ├── design_iteration_alone.csv             (each mitigation alone)
 ├── design_iteration_combos.csv            (stacked combinations)
+├── bolt_joint_iteration_check.py          (bolt-joint mitigation stack)
+├── bolt_joint_iteration_alone.csv         (each change alone)
+├── bolt_joint_iteration_combos.csv        (stacked combinations)
 └── plots/
     ├── wear_vs_distance.png
     ├── safety_factor_running_min.png
@@ -593,7 +671,8 @@ aurora-mono-simulations/
     ├── viscoelastic_stress_trace.png
     ├── rib_lattice_sensitivity.png
     ├── launch_load_miles.png
-    └── design_iteration_sf_vs_interlayer.png
+    ├── design_iteration_sf_vs_interlayer.png
+    └── bolt_joint_iteration.png
 ```
 
 ## Open work — what would strengthen this at next fidelity
@@ -602,7 +681,7 @@ In rough order of impact:
 
 1. **True 3D viscoelastic FEM** (FEniCS / ABAQUS / Calculix) of the lug-skin region under the diurnal cycle, with measured Prony coefficients. The actual next-fidelity step — resolves edge stresses properly, captures 3D constraint, and could either tighten or loosen the static-margin concern from the thermal-cycling check.
 2. **Rib root joint analysis** — the lattice check treats ribs as pin-ended struts, but the most likely failure location in the lattice is where each rib bonds to a skin. A 3D truss FEM (or solid FEM) of the lattice with the actual contact-patch pressure distribution would give per-rib stresses with correct distribution and resolve joint stress concentrations.
-3. **Bolt joint creep + fatigue under thermal cycling** — the screening bolt-joint check is initial-condition only. PEKK pad-boss creep at +127 °C would relax preload over a long mission, and full Goodman fatigue analysis under wheel-rotation cycles is recommended.
+3. **Bolt joint creep + fatigue under thermal cycling** — the bolt-joint and bolt-joint-iteration checks are initial-condition only. PEKK pad-boss creep at +127 °C would relax preload over a long mission, and full Goodman fatigue analysis under wheel-rotation cycles is recommended. This concern persists for both the baseline and the recommended (M Ti) + (P 50%) joint.
 4. **Modal analysis with realistic suspension boundary conditions** — the launch-load check estimates the wheel's first mode at ~15 Hz from a free spoke-bending model, which is below the typical 100 Hz launch-hardware threshold. A real modal analysis would refine this and determine whether resonance amplification at the rover-suspension level is a concern.
 5. **Lattice and skin response to distributed inertial body loads under launch** — the launch check only covers the hub joint.
 5. **Coupon-test CTE values** for the two formulations (the screening uses rule-of-mixtures estimates).
