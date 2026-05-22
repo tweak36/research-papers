@@ -85,7 +85,6 @@ This is a paper design specification with closed-form Python validation — not 
 └── papers/
     ├── riemann-hypothesis-numerical-simulation.pdf
     ├── aurora-mono-wheel-build-spec.pdf
-    ├── build_paper_pdf.py             (regenerates the AURORA-Mono PDF)
     └── aurora-mono-simulations/
         ├── README.md
         ├── aurora_mono_screening_model.py
