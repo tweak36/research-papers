@@ -6,6 +6,7 @@ A small collection of independent research papers by **William Duckworth**.
 |---|-------|-------|------|-----|
 | 1 | Deciphering Beale Cipher 1: A Comprehensive Statistical and Geographical Analysis | Cryptography / History | Feb 2025 | [PDF](papers/deciphering-beale-cipher-1.pdf) |
 | 2 | Numerical Simulation of the Riemann Hypothesis: Impact of Zero Distribution on Prime Number Distribution | Number Theory / Computation | Jan 2025 | [PDF](papers/riemann-hypothesis-numerical-simulation.pdf) |
+| 3 | AURORA-Mono (One-Piece) Rover Wheel — Build Specification | Mechanical / Aerospace Engineering | 2026 | [PDF](papers/aurora-mono-wheel-build-spec.pdf) |
 
 ---
 
@@ -40,6 +41,23 @@ A small collection of independent research papers by **William Duckworth**.
 
 ---
 
+## 3. AURORA-Mono (One-Piece) Rover Wheel — Build Specification
+
+**[Read the PDF](papers/aurora-mono-wheel-build-spec.pdf)** · 4 pages
+
+> Full build specification for AURORA-Mono, a one-piece composite rover wheel engineered for the MicroChariot interface envelope. The design combines a carbon-nanotube-reinforced PEKK structural cage with a silicon-carbide-filled PEKK wear tread, joined by a co-molded mechanical and chemical bond.
+
+**Highlights**
+
+- **Envelope:** 18.000 in OD × 8.000 in wide, MicroChariot-compliant hub pattern with full keep-out compliance.
+- **Sandwich rim wall:** 1.20 mm skins over a 7.00 mm helical-rib core (48 ribs at ±35°, X-brace lattice).
+- **Hub torque web:** 6 internal composite web-spokes (5.0 → 3.0 mm taper) with triangular lightening pockets.
+- **Tread:** integral SiC-PEKK chevron lugs in two staggered rows, 75–80% void ratio, with co-molded mechanical anti-peel keys and same-family chemical bonding at 355–365 °C.
+- **Mass target:** 2.21–2.30 kg as-built, with documented optimization margin down ~80–120 g.
+- Includes tolerances, manufacturing sequence (additive core → autoclave skins → machining → compression-molded tread → top-coat → NDI), and a full critical-dimensions table.
+
+---
+
 ## Repository layout
 
 ```
@@ -47,16 +65,19 @@ A small collection of independent research papers by **William Duckworth**.
 ├── README.md
 └── papers/
     ├── deciphering-beale-cipher-1.pdf
-    └── riemann-hypothesis-numerical-simulation.pdf
+    ├── riemann-hypothesis-numerical-simulation.pdf
+    └── aurora-mono-wheel-build-spec.pdf
 ```
 
 ## Citing
 
-If you reference either paper, please cite as:
+If you reference any of these papers, please cite as:
 
 > Duckworth, W. *Deciphering Beale Cipher 1: A Comprehensive Statistical and Geographical Analysis.* 2025.
 
 > Duckworth, W. *Numerical Simulation of the Riemann Hypothesis: Impact of Zero Distribution on Prime Number Distribution.* 2025.
+
+> Duckworth, W. *AURORA-Mono (One-Piece) Rover Wheel — Build Specification, Rev 1.0.* 2026.
 
 ## License
 
