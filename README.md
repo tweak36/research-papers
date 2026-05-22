@@ -70,11 +70,13 @@ A reproducible Python screening model runs 50,000 segments (20 m each = 1000 km 
 
 **Peel check** (the mode the anti-peel keys are designed for) — bending stress at the bond edge under eccentric loading from cresting a rock: SF 6.1 at the worst rock event with the load offset to the lug edge. SF stays ≥1.8 across a full sensitivity grid on the chemical allowable and key multiplier; SF 12–58 in any realistic non-extreme case.
 
-**Fatigue check** — Miner's-rule cumulative damage on both skin and bond peel across ~696,000 wheel-rotation cycles over 1000 km. Every cycle, on both components, falls below the assumed endurance limit (64 MPa for the PEKK-CNT/CF skin; 2.5 MPa for the bond with anti-peel keys credited). Total damage = 0 nominally; even the most adverse sensitivity combination (no key credit + lowest plausible bond strength + lowest plausible endurance ratio) gives fatigue life >7,200 km vs 1,000 km design distance. Fatigue is not the governing failure mode under the modeled load spectrum.
+**Fatigue check** — Miner's-rule cumulative damage on both skin and bond peel across ~696,000 wheel-rotation cycles over 1000 km. Every cycle, on both components, falls below the assumed endurance limit. Total damage = 0 nominally; even the most adverse sensitivity combination gives fatigue life >7,200 km vs 1,000 km design distance. Driving-load fatigue is not the governing failure mode.
 
-Full code, CSVs, plots, and complete documentation of what the screening models do **not** capture (no FEA, no fracture mechanics, no real thermo, no thermal-cycle stress, no rib-lattice analysis): [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/).
+**Thermal-cycling check** — *the first screening check to surface a real margin concern.* The lunar diurnal swing (ΔT ≈ 300 K) drives differential thermal expansion between the SiC-PEKK tread and PEKK-CNT/CF skin. Under nominal estimated CTE values (Δα = 19 ppm/K), the constrained-strain peak peel stress at lug edges is ~11 MPa — slightly above the bond's static allowable (~10 MPa) and well above its endurance limit (2.5 MPa). Static SF = 0.88. The result is **highly sensitive to assumptions** — viscoelastic creep relaxation during long lunar-day dwells is not credited and would relax some of the peak stress, but the screening result clearly identifies thermal cycling as the dominant failure mode candidate. Mitigations identified: compliant interlayer, reformulated SiC-PEKK with lower CTE, edge geometry mitigation, thermal management. **Highest-priority next-fidelity work: viscoelastic FEM with measured CTE values.**
 
-**Open work before this would be a real engineering artifact:** thermal-cycling stress from differential CTE (likely the dominant *real* fatigue driver), fracture-mechanics peel analysis using measured G_c, FEA on the rib lattice under lunar loading, a real thermal model (radiation balance + 1D conduction), coupon-test wear coefficients against JSC-1A regolith simulant, coupon-test bond strength (shear / peel / G_c / S-N), prototype build and bench test.
+Full code, CSVs, plots, and complete documentation of what the screening models do **not** capture (no FEA, no fracture mechanics, no real thermo, no rib-lattice analysis): [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/).
+
+**Open work before this would be a real engineering artifact:** viscoelastic FEM under the diurnal cycle with measured CTE values (the urgent one, given the thermal-cycle finding), fracture-mechanics peel analysis using measured G_c, FEA on the rib lattice under lunar loading, a real thermal model (radiation balance + 1D conduction), coupon-test wear coefficients against JSC-1A regolith simulant, coupon-test bond strength (shear / peel / G_c / S-N), prototype build and bench test, and a design iteration evaluating compliant-interlayer or reformulated-tread mitigations for the thermal-cycle failure mode.
 
 ---
 
@@ -104,13 +106,17 @@ Full code, CSVs, plots, and complete documentation of what the screening models 
         ├── fatigue_check.py
         ├── fatigue_check_summary.csv
         ├── fatigue_check_sensitivity.csv
+        ├── thermal_cycle_check.py
+        ├── thermal_cycle_check_summary.csv
+        ├── thermal_cycle_check_sensitivity.csv
         └── plots/
             ├── wear_vs_distance.png
             ├── safety_factor_running_min.png
             ├── thermal_cycle.png
             ├── sensitivity_wear.png
             ├── sensitivity_min_sf.png
-            └── fatigue_stress_histograms.png
+            ├── fatigue_stress_histograms.png
+            └── thermal_cycle_fatigue_life.png
 ```
 
 ## Citing

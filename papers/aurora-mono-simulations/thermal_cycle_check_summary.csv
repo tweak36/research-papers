@@ -1,0 +1,2 @@
+E_tread_GPa,E_skin_GPa,alpha_tread_ppm_per_K,alpha_skin_ppm_per_K,delta_alpha_ppm_per_K,delta_T_full_K,cycles_per_year,bond_effective_allowable_MPa,bond_endurance_limit_MPa,peel_recovery_nominal,interior_constrained_full_MPa,interior_constrained_half_MPa,edge_peel_full_MPa,edge_peel_half_MPa,static_SF_edge_peel_full,static_SF_edge_peel_half,cycles_to_failure_nominal,fatigue_life_years_nominal
+5.0,50.0,29.0,10.0,19.0,300.0,12.38,10.0,2.5,0.4,28.5,14.25,11.4,5.7,0.877,1.754,0.5,0.04

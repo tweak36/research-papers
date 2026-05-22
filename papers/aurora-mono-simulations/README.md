@@ -175,12 +175,79 @@ Every cycle, on both components, falls below the endurance limit. Visually:
 **Verdict:** the design has enough static margin that fatigue is not the governing failure mode under the modeled load spectrum. Even the most adverse parameter combinations show fatigue life > 7× the 1000 km design distance.
 
 **Caveats this check does NOT capture:**
-- Thermal-cycling stress from differential CTE (SiC-PEKK vs PEKK-CNT/CF) — likely the dominant *real* fatigue driver and not modeled here.
 - Mean-stress effects (Goodman / Soderberg corrections).
 - Load-sequence interaction.
 - Crack-growth-based life prediction (Paris law on G_c).
+- Thermal-cycling stress from differential CTE — analyzed separately in `thermal_cycle_check.py` below.
 
 Outputs: [`fatigue_check_summary.csv`](fatigue_check_summary.csv) and [`fatigue_check_sensitivity.csv`](fatigue_check_sensitivity.csv).
+
+### Thermal-cycling check — [`thermal_cycle_check.py`](thermal_cycle_check.py)
+
+> **This is the first screening check to surface a real margin concern. Read this section carefully.**
+
+When the wheel sits on the lunar surface, the bonded interface between the SiC-PEKK tread and the PEKK-CNT/CF outer skin sees cyclic stress from differential thermal expansion. The lunar diurnal swing is ΔT ≈ 300 K (−173 to +127 °C) over a 29.5-day cycle, giving ~12.4 thermal cycles per Earth year.
+
+The constrained-strain upper bound on interfacial stress is `σ = E_tread · Δα · ΔT`. Real peak peel at lug edges is some fraction of this bound; the model sweeps a "peel recovery factor" from 0.3 (heavily relaxed) to 1.0 (no relaxation).
+
+**Material assumptions** (estimated, not measured):
+
+| Material | E | α (CTE) |
+|---|---|---|
+| Tread SiC-PEKK | 5 GPa | 29 ppm/K |
+| Skin PEKK-CNT/CF (in-plane) | 50 GPa | 10 ppm/K |
+| **Δα** | | **19 ppm/K** |
+
+**Nominal result** (Δα = 19 ppm/K, edge recovery factor = 0.40, ΔT = 300 K):
+
+| Quantity | Value |
+|---|---|
+| Interior constrained shear (full cycle) | 28.5 MPa |
+| Estimated peak peel at lug edge | 11.4 MPa |
+| Bond effective allowable | 10.0 MPa |
+| **Static SF on edge peel** | **0.88** |
+| Stress vs bond endurance limit (2.5 MPa) | 11.4 MPa ≫ 2.5 MPa → cycles count toward fatigue |
+| Cycles to failure | ~0.5 |
+| **Implied bond fatigue life** | **~15 days (less than one lunar day)** |
+
+**Sensitivity** on the two most uncertain inputs:
+
+![Thermal-cycle bond fatigue life vs Δα](plots/thermal_cycle_fatigue_life.png)
+
+| Δα (ppm/K) | Recovery factor | Edge peel | Static SF | Fatigue life |
+|---|---|---|---|---|
+| 10 | 0.30 | 4.5 MPa | 2.22 | ~2,000 years |
+| 10 | 0.40 | 6.0 MPa | 1.67 | ~130 years |
+| 15 | 0.30 | 6.75 MPa | 1.48 | ~32 years |
+| 15 | 0.40 | 9.0 MPa | 1.11 | ~186 days |
+| **19** (nominal) | **0.40** (nominal) | **11.4 MPa** | **0.88** | **~15 days** |
+| 19 | 0.30 | 8.55 MPa | 1.17 | ~1.2 years |
+| 25 | any | ≥11.25 MPa | ≤0.89 | ≤15 days |
+| 30 | any | ≥13.5 MPa | ≤0.74 | ≤15 days |
+
+**Honest verdict**
+
+Under the nominal estimated material properties, **thermal cycling alone is the dominant failure mode candidate**. The constrained-strain peak peel stress (~11 MPa) is slightly above the bond's static allowable (~10 MPa), and well above its endurance limit (2.5 MPa). The driving-load checks (strip stress, lug shear, lug peel, driving-cycle fatigue) all showed comfortable margins; this passive thermal check is the one that doesn't.
+
+**The numerical result is highly sensitive to assumptions.** The constrained-strain model is intentionally conservative — it does NOT credit:
+- Viscoelastic / creep relaxation in PEKK during long lunar-day dwells at +127 °C (Tg ≈ 165 °C is uncomfortably close — meaningful creep is expected).
+- Through-thickness compliance of the sandwich wall.
+- Any compliant interlayer between SiC-PEKK and PEKK-CNT/CF.
+- Edge geometry detail (chamfers, fillets) that distributes the singularity.
+
+The result *should* be read as: **this is the failure mode to instrument and design against**, not "the design fails." A real evaluation needs viscoelastic FEA with measured material properties.
+
+**Mitigations to consider in any next design iteration:**
+
+- Compliant interlayer (e.g. unfilled PEKK strip) between tread and skin to absorb CTE mismatch.
+- Reformulate SiC-PEKK with higher SiC vol-fraction to drop α_tread.
+- Lower-modulus / lower-CTE skin layup in the regions under each lug.
+- Edge geometry (chamfered lug bases, scalloped transitions) to spread the strain singularity.
+- Active or passive thermal management at the bond.
+
+**Next-fidelity step:** viscoelastic FEM (Prony-series PEKK material model) with measured CTE values for both formulations, run over the full diurnal cycle.
+
+Outputs: [`thermal_cycle_check_summary.csv`](thermal_cycle_check_summary.csv) and [`thermal_cycle_check_sensitivity.csv`](thermal_cycle_check_sensitivity.csv).
 
 ## Files in this folder
 
@@ -200,13 +267,17 @@ aurora-mono-simulations/
 ├── fatigue_check.py                       (Miner's-rule fatigue accumulator)
 ├── fatigue_check_summary.csv              (skin + bond fatigue summary)
 ├── fatigue_check_sensitivity.csv          (27-row bond fatigue sensitivity)
+├── thermal_cycle_check.py                 (CTE-mismatch thermal cycling)
+├── thermal_cycle_check_summary.csv        (single-cycle + fatigue summary)
+├── thermal_cycle_check_sensitivity.csv    (25-row Δα × recovery sweep)
 └── plots/
     ├── wear_vs_distance.png
     ├── safety_factor_running_min.png
     ├── thermal_cycle.png
     ├── sensitivity_wear.png
     ├── sensitivity_min_sf.png
-    └── fatigue_stress_histograms.png
+    ├── fatigue_stress_histograms.png
+    └── thermal_cycle_fatigue_life.png
 ```
 
 ## Sensitivity & assumptions to bear in mind
@@ -224,16 +295,19 @@ A formal sensitivity sweep is not yet included.
 
 In rough order of impact:
 
-1. ~~Sensitivity sweep~~ — **added** (see `sensitivity_sweep.py`). Identified `instant_contact_fraction` as the dominant-but-uncertain parameter.
+1. ~~Sensitivity sweep~~ — **added** (see `sensitivity_sweep.py`). Identified `instant_contact_fraction` as the dominant-but-uncertain wear parameter.
 2. ~~Lug-shear check~~ — **added** (see `lug_shear_check.py`). SF 13–27 in shear.
-3. ~~Peel-mode bond check~~ — **added** (see `peel_check.py`). SF 6.1 nominal; SF ≥1.8 across the full sensitivity grid.
-4. ~~Miner's-rule fatigue accumulator~~ — **added** (see `fatigue_check.py`). Skin and bond peel both stay below endurance limit on every cycle; fatigue is not the governing failure mode.
-5. **Thermal-cycling stress** at the SiC-PEKK / PEKK-CNT/CF interface from differential CTE, accumulated over the lunar diurnal cycle. Likely the dominant *real* fatigue driver and not yet modeled.
-6. **Fracture-mechanics peel analysis** using G_c (Paris-law crack growth) for the actual co-mold bond, replacing the stress-based screening check in `peel_check.py`.
-7. **Helical X-brace rib analysis** — the lattice is the wheel's structural load path and is not currently modeled.
-8. **Real thermal model** — radiation balance, 1D conduction through the sandwich wall, regolith contact, sun/shadow cycling.
-9. **Coupon-test wear coefficients** for SiC-PEKK against JSC-1A lunar regolith simulant, replacing the estimated `k(T)`.
-10. **Coupon-test bond strength** (shear, peel, G_c, and S-N) for the co-molded PEKK joint, replacing the estimated allowables in the screening scripts.
+3. ~~Peel-mode bond check~~ — **added** (see `peel_check.py`). SF 6.1 nominal under driving loads.
+4. ~~Miner's-rule fatigue accumulator~~ — **added** (see `fatigue_check.py`). Driving-load fatigue not a concern.
+5. ~~Thermal-cycling stress from differential CTE~~ — **added** (see `thermal_cycle_check.py`). **Surfaced as the dominant failure-mode candidate.** Result is highly sensitive to assumptions; next-fidelity work below is now urgent rather than merely thorough.
+6. **Viscoelastic FEM with Prony-series PEKK** under the diurnal cycle, with measured CTE / modulus values for the actual SiC-PEKK and PEKK-CNT/CF formulations. This is the most important single next step — it converts the current screening "margin concern" into either a real concern or a non-issue.
+7. **Coupon-test CTE values** for the two formulations (the screening uses rule-of-mixtures estimates).
+8. **Fracture-mechanics peel analysis** using G_c (Paris-law crack growth) for the actual co-mold bond.
+9. **Helical X-brace rib analysis** — the lattice is the wheel's structural load path and is not currently modeled.
+10. **Real thermal model** — radiation balance, 1D conduction through the sandwich wall, regolith contact, sun/shadow cycling.
+11. **Coupon-test wear coefficients** for SiC-PEKK against JSC-1A lunar regolith simulant, replacing the estimated `k(T)`.
+12. **Coupon-test bond strength** (shear, peel, G_c, S-N) for the co-molded PEKK joint, replacing the estimated allowables in the screening scripts.
+13. **Design iteration:** evaluate a compliant interlayer (unfilled PEKK), reformulated SiC-PEKK, or edge geometry mitigations targeting the thermal-cycle failure mode identified in (5).
 
 ## License
 
