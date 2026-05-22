@@ -1,0 +1,2 @@
+E_tread_glassy_GPa,delta_alpha_ppm_per_K,delta_T_full_K,Ea_over_R_K,permanent_term_weight,elastic_interior_full_MPa,elastic_edge_full_MPa,viscoelastic_interior_max_MPa,viscoelastic_interior_amplitude_MPa,viscoelastic_edge_max_MPa,viscoelastic_edge_amplitude_MPa,stress_retention_factor,static_SF_edge,fatigue_cycles_to_failure,fatigue_life_years
+5.0,19.0,300.0,10000,0.5,28.5,11.4,28.026,14.107,11.21,5.643,0.9834,0.892,3060.5449,247.19

@@ -245,9 +245,52 @@ The result *should* be read as: **this is the failure mode to instrument and des
 - Edge geometry (chamfered lug bases, scalloped transitions) to spread the strain singularity.
 - Active or passive thermal management at the bond.
 
-**Next-fidelity step:** viscoelastic FEM (Prony-series PEKK material model) with measured CTE values for both formulations, run over the full diurnal cycle.
+**Next-fidelity step:** viscoelastic FEM (Prony-series PEKK material model) with measured CTE values for both formulations. A 1D Prony-series relaxation screening — capturing the dominant missing physics short of true FEM — is added separately in `viscoelastic_relaxation_check.py` below.
 
 Outputs: [`thermal_cycle_check_summary.csv`](thermal_cycle_check_summary.csv) and [`thermal_cycle_check_sensitivity.csv`](thermal_cycle_check_sensitivity.csv).
+
+### Viscoelastic relaxation screening — [`viscoelastic_relaxation_check.py`](viscoelastic_relaxation_check.py)
+
+> **This is NOT finite element analysis.** True FEM requires solver tooling and a meshed CAD model. This is a 1D generalized-Maxwell stress-relaxation model with Arrhenius time-temperature superposition that addresses the dominant missing physics from `thermal_cycle_check.py` — PEKK creep at +127 °C — and gives a more realistic picture of how the bond stress actually evolves over the diurnal cycle.
+
+The model time-steps a 3-cycle simulation through the cool-down / cold-dwell / heat-up / hot-dwell phases, applying elastic stress increments from ΔT and Prony-series relaxation during dt. Material parameters are educated estimates from published PEEK/PEKK behavior — not measured for the actual SiC-PEKK formulation.
+
+**Result — the relaxation does very different things at the two extremes of the cycle:**
+
+![Bond stress over 3 lunar diurnal cycles](plots/viscoelastic_stress_trace.png)
+
+| Metric | Elastic upper bound | Viscoelastic relaxation |
+|---|---|---|
+| Peak interior stress (post cool-down) | 28.5 MPa | 28.0 MPa |
+| Peak edge peel | 11.4 MPa | 11.2 MPa |
+| **Static SF on edge peel** | **0.88** | **0.89** (essentially unchanged) |
+| Stress amplitude per cycle (edge) | 11.4 MPa (treated as fully reversed) | **5.6 MPa** (asymmetric 0-to-peak) |
+| Implied fatigue life | ~15 days | **~247 years** |
+
+**Why the static SF didn't change much:** cool-down happens fast (~24 hours) and reaches cold temperatures (−173 °C) where the Arrhenius shift effectively freezes relaxation. The peak stress builds up elastically and holds across the 14-day cold dwell with negligible decay. The viscoelastic model captures this honestly.
+
+**Why fatigue life improved dramatically:** during the hot dwell, the bond is at +127 °C (near PEKK's Tg ≈ 165 °C) and the Prony series collapses the stress back toward zero over 14 days. The stress *amplitude* per cycle is therefore (peak − 0) / 2 ≈ 5.6 MPa rather than the elastic-check's symmetric ±11.4 MPa swing. 5.6 MPa is above the bond's endurance limit (2.5 MPa) but well below static — fatigue accumulates slowly.
+
+**Sensitivity** on Arrhenius temperature sensitivity (Ea/R) and permanent-term Prony weight (the two largest unknowns):
+
+| Ea/R (K) | Permanent w_∞ | Edge max | Edge amplitude | Static SF | Fatigue life |
+|---|---|---|---|---|---|
+| 6,000 | 0.30 | 10.88 MPa | 5.50 MPa | 0.92 | ~322 y |
+| 10,000 | 0.50 | 11.21 MPa | 5.64 MPa | 0.89 | ~247 y |
+| 15,000 | 0.70 | 11.34 MPa | 5.69 MPa | 0.88 | ~226 y |
+
+Across the full sensitivity grid, the **static SF stays in the 0.88–0.92 range**: stubbornly below 1.0 regardless of Prony assumptions. The fatigue life stays in the 226–322 year range: comfortable regardless.
+
+**Refined honest verdict**
+
+Crediting realistic viscoelastic relaxation **does not resolve the thermal-cycling margin concern** — but it does *change the nature* of that concern:
+
+- **Failure mode shifts from fatigue to static.** The elastic check predicted ~15-day fatigue debond. The viscoelastic check predicts hundreds-of-years fatigue life but a static SF below 1.0 on the first cool-down. The wheel doesn't fail because the bond gets tired — it fails because cool-down builds a peak peel stress slightly above the bond's static peel allowable, in one pass.
+- **Design mitigation IS required** regardless of analysis fidelity. The four mitigations listed in the elastic check (compliant interlayer, reformulated SiC-PEKK, edge geometry, thermal management) are still the right list — and the goal is now to push static peel SF above 1.5, not to extend fatigue life.
+
+**This screening still does not replace true 3D viscoelastic FEM** with measured Prony coefficients. That remains on the open-work list as the actual next-fidelity step — but the rough picture (concern is static debond on first cool-down, not cumulative fatigue) is now defensible.
+
+Outputs: [`viscoelastic_relaxation_summary.csv`](viscoelastic_relaxation_summary.csv) and [`viscoelastic_relaxation_sensitivity.csv`](viscoelastic_relaxation_sensitivity.csv).
 
 ## Files in this folder
 
@@ -270,6 +313,9 @@ aurora-mono-simulations/
 ├── thermal_cycle_check.py                 (CTE-mismatch thermal cycling)
 ├── thermal_cycle_check_summary.csv        (single-cycle + fatigue summary)
 ├── thermal_cycle_check_sensitivity.csv    (25-row Δα × recovery sweep)
+├── viscoelastic_relaxation_check.py       (Prony-series upgrade, NOT FEM)
+├── viscoelastic_relaxation_summary.csv    (3-cycle stress + fatigue result)
+├── viscoelastic_relaxation_sensitivity.csv (Ea/R × permanent-term sweep)
 └── plots/
     ├── wear_vs_distance.png
     ├── safety_factor_running_min.png
@@ -277,7 +323,8 @@ aurora-mono-simulations/
     ├── sensitivity_wear.png
     ├── sensitivity_min_sf.png
     ├── fatigue_stress_histograms.png
-    └── thermal_cycle_fatigue_life.png
+    ├── thermal_cycle_fatigue_life.png
+    └── viscoelastic_stress_trace.png
 ```
 
 ## Sensitivity & assumptions to bear in mind
@@ -299,15 +346,16 @@ In rough order of impact:
 2. ~~Lug-shear check~~ — **added** (see `lug_shear_check.py`). SF 13–27 in shear.
 3. ~~Peel-mode bond check~~ — **added** (see `peel_check.py`). SF 6.1 nominal under driving loads.
 4. ~~Miner's-rule fatigue accumulator~~ — **added** (see `fatigue_check.py`). Driving-load fatigue not a concern.
-5. ~~Thermal-cycling stress from differential CTE~~ — **added** (see `thermal_cycle_check.py`). **Surfaced as the dominant failure-mode candidate.** Result is highly sensitive to assumptions; next-fidelity work below is now urgent rather than merely thorough.
-6. **Viscoelastic FEM with Prony-series PEKK** under the diurnal cycle, with measured CTE / modulus values for the actual SiC-PEKK and PEKK-CNT/CF formulations. This is the most important single next step — it converts the current screening "margin concern" into either a real concern or a non-issue.
-7. **Coupon-test CTE values** for the two formulations (the screening uses rule-of-mixtures estimates).
-8. **Fracture-mechanics peel analysis** using G_c (Paris-law crack growth) for the actual co-mold bond.
-9. **Helical X-brace rib analysis** — the lattice is the wheel's structural load path and is not currently modeled.
-10. **Real thermal model** — radiation balance, 1D conduction through the sandwich wall, regolith contact, sun/shadow cycling.
-11. **Coupon-test wear coefficients** for SiC-PEKK against JSC-1A lunar regolith simulant, replacing the estimated `k(T)`.
-12. **Coupon-test bond strength** (shear, peel, G_c, S-N) for the co-molded PEKK joint, replacing the estimated allowables in the screening scripts.
-13. **Design iteration:** evaluate a compliant interlayer (unfilled PEKK), reformulated SiC-PEKK, or edge geometry mitigations targeting the thermal-cycle failure mode identified in (5).
+5. ~~Thermal-cycling stress from differential CTE~~ — **added** (see `thermal_cycle_check.py`). Surfaced as the dominant failure-mode candidate.
+6. ~~Viscoelastic relaxation screening (1D Prony series, NOT FEM)~~ — **added** (see `viscoelastic_relaxation_check.py`). Refined the picture: fatigue is comfortable (~247 yr life), but static peel SF on first cool-down stays near 0.89 across all sensitivity combos. The thermal-cycling concern is real and is a *static* concern, not a fatigue concern.
+7. **True 3D viscoelastic FEM** (FEniCS / ABAQUS / Calculix) of the lug-skin region under the diurnal cycle, with measured Prony coefficients. This is the actual next-fidelity step — it resolves edge stresses properly, captures 3D constraint, and could either tighten or loosen the static-margin concern identified in (5) and (6).
+8. **Coupon-test CTE values** for the two formulations (the screening uses rule-of-mixtures estimates).
+9. **Fracture-mechanics peel analysis** using G_c (Paris-law crack growth) for the actual co-mold bond.
+10. **Helical X-brace rib analysis** — the lattice is the wheel's structural load path and is not currently modeled.
+11. **Real thermal model** — radiation balance, 1D conduction through the sandwich wall, regolith contact, sun/shadow cycling.
+12. **Coupon-test wear coefficients** for SiC-PEKK against JSC-1A lunar regolith simulant, replacing the estimated `k(T)`.
+13. **Coupon-test bond strength** (shear, peel, G_c, S-N) for the co-molded PEKK joint, replacing the estimated allowables in the screening scripts.
+14. **Design iteration:** evaluate a compliant interlayer (unfilled PEKK), reformulated SiC-PEKK, or edge geometry mitigations targeting the static peel failure mode identified by checks (5) and (6).
 
 ## License
 
