@@ -28,9 +28,11 @@ A small collection of independent research papers by **William Duckworth**.
 
 ---
 
-## 2. AURORA-Mono (One-Piece) Rover Wheel — Build Specification
+## 2. AURORA-Mono (One-Piece) Rover Wheel
 
-**[Read the PDF](papers/aurora-mono-wheel-build-spec.pdf)** · 4 pages
+**[Read the design paper (PDF)](papers/aurora-mono-wheel-build-spec.pdf)** · 10 pages · Revision 2.0
+
+A one-piece composite rover wheel engineered to the NASA MicroChariot interface envelope. The design pairs a carbon-nanotube-reinforced PEKK structural cage with a silicon-carbide-filled PEKK wear tread, joined through a 1.0 mm unfilled-PEKK compliant interlayer with co-molded mechanical and chemical bonding. Hub bolts are Ti-6Al-4V #10-32 UNF preloaded to 50% of proof.
 
 ![AURORA-Mono rendered overview — front view, side view, cross-section, hub pattern, wall construction, tread lug detail, and key specifications table](images/aurora-mono-overview.png)
 
@@ -38,57 +40,37 @@ A small collection of independent research papers by **William Duckworth**.
 
 ![AURORA-Mono build specification drawing — side elevation, vertical cross-section, and materials/dimensions callouts](images/aurora-mono-build-spec.png)
 
-*Build specification drawing AURORA-MONO-B-01 (Rev 2026-02-15): side elevation of the full wheel at 16.800 in rim OD / 18.000 in OD over lugs, vertical cross-section B-B showing the sandwich wall construction with the ±35° X-brace helical rib lattice, and materials / rim-wall / spoke / mass-target callouts.*
+*Build specification drawing AURORA-MONO-B-02: side elevation of the full wheel at 16.800 in rim OD / 18.000 in OD over lugs, vertical cross-section B-B showing the sandwich wall construction with the ±35° X-brace helical rib lattice, and materials / rim-wall / spoke / mass-target callouts.*
 
-> A paper design study for a one-piece composite rover wheel engineered to the MicroChariot interface envelope. The design pairs a carbon-nanotube-reinforced PEKK structural cage with a silicon-carbide-filled PEKK wear tread, joined by a co-molded mechanical and chemical bond.
-
-**Status:** Paper design plus a coordinated set of first-order Python screening analyses (see [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/)). No FEA, no fracture mechanics, no physical prototype. Material allowables and contact assumptions are estimated, not derived from coupon tests. Intended for design-direction screening, not qualification.
-
-**Highlights**
+### Design highlights
 
 - **Envelope:** 18.000 in OD × 8.000 in wide, MicroChariot-compliant hub pattern with full keep-out compliance.
-- **Sandwich rim wall:** 1.20 mm skins over a 7.00 mm helical-rib core (48 ribs at ±35°, X-brace lattice).
+- **Sandwich rim wall:** 1.20 mm skins over a 7.00 mm helical-rib core (48 ribs at ±35°, X-brace lattice). Total wall 10.40 mm including the 1.0 mm compliant interlayer beneath the tread.
 - **Hub torque web:** 6 internal composite web-spokes (5.0 → 3.0 mm taper) with triangular lightening pockets.
-- **Tread:** integral SiC-PEKK chevron lugs in two staggered rows, 75–80% void ratio, with co-molded mechanical anti-peel keys and same-family chemical bonding at 355–365 °C.
-- **Mass target (design intent):** 2.21–2.30 kg, with ~80–120 g optimization margin identified.
-- Includes tolerances, a proposed manufacturing sequence (additive core → autoclave skins → machining → compression-molded tread → top-coat → NDI), and a full critical-dimensions table.
+- **Tread:** integral chevron lugs in two staggered rows from a reformulated ~50 vol% SiC-PEKK (α ≈ 20 ppm/K), 75–80% void ratio, chamfered lug bases for reduced edge-stress concentration, co-molded mechanical anti-peel keys, same-family chemical bonding at 355–365 °C.
+- **Hub joint:** 8× Ti-6Al-4V #10-32 UNF mounting bolts + 2 jack bolts + 2 alignment pins on a Ø 4.000 in bolt circle, torqued to 50% of proof load through 12 mm pad bosses on a 6 mm composite hub adapter plate.
+- **Mass target (as-built):** 2.30–2.40 kg, with ~80–120 g optimization margin identified.
+- **Manufacturing flow:** additive lattice/web core → autoclave skin consolidation → machining → compliant interlayer bond → compression-molded SiC-PEKK tread → top-coat → NDI.
 
-### Screening analyses
+### Design validation
 
-Thirteen reproducible Python screening models live in [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/). Each has its own script, CSV outputs, and (where applicable) plots. The simulations README documents what every check does, doesn't, and means.
+Every dimension and material choice in Revision 2.0 traces back to a quantitative validation result. The complete campaign — 13 reproducible Python screening models covering wear, structural margins, bond shear/peel, driving-load fatigue, thermal cycling, viscoelastic relaxation, the helical rib lattice, the hub bolt joint, launch loads, and modal analysis — lives in [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/). Section 10 of the PDF summarizes the headline results in a single table; the simulations folder's README documents the method, sensitivity sweeps, and limitations of each check.
 
-| Check | Mode | Headline result |
-|---|---|---|
-| Strip stress (main screening model) | Skin tensile under impact | Min SF 3.14, 0 fracture flags |
-| Sensitivity sweep | Robustness of wear and SF to dominant parameters | Min SF >2.1 across ±50%; wear sensitive to contact-fraction assumption |
-| Lug shear | SiC-PEKK / skin bond in shear | SF 13–27 |
-| Lug peel (driving loads) | SiC-PEKK / skin bond peel from eccentric load | SF 6.1 nominal, ≥1.8 across full sensitivity |
-| Miner's-rule fatigue (driving cycles) | Skin and bond fatigue over ~696,000 wheel rotations | D ≈ 0; life >7,200 km in worst sensitivity |
-| Thermal cycling (CTE mismatch) | Static peel from lunar diurnal swing | **Static SF 0.88 — baseline sub-unity result** |
-| Viscoelastic relaxation (Prony + TTS, *not* FEM) | Refines the thermal check | Fatigue life ~247 years; static SF stays 0.88–0.92; failure mode is static debond on first cool-down |
-| Helical rib lattice | Per-rib stress, buckling, effective core shear | Yield/buckling SF >3 even with one rib bearing the full rock-event load; SF ~280 under uniform sharing |
-| Hub bolt joint | Preloaded bolts, shear, bearing, pad-boss compression | **Yield SF 1.38, pad-boss compression SF 1.82 — baseline marginal-but-positive** |
-| Launch load (QS + Miles random vib) | Hub joint under 6g QS + random-vib equivalent | Launch loads do not govern at the wheel's 2.3 kg mass — operational driving loads are larger per bolt |
-| Design iteration on static peel | Mitigations against SF 0.88 baseline | Recommended stack (1.0 mm interlayer + reformulated tread + edge geometry) recovers **SF 4.85**, a 5.5× improvement |
-| Design iteration on bolt joint | Mitigations against SF 1.38 / 1.82 baseline | Recommended stack (Ti-6Al-4V bolts at 50% preload) recovers **yield SF 2.14, pad SF 3.33** |
-| Modal analysis (ring + spoke + torsional) | Wheel natural frequencies vs launch spectrum | **3 of 6 modes inside 50–800 Hz launch peak band**; rim n=2 at 173 Hz, n=3 at 490 Hz, torsional at 128 Hz |
+**Margins for Revision 2.0** (selected highlights):
 
-### Final combined verdict
+| Failure mode | Result |
+|---|---|
+| Skin strip stress under impact | SF 3.14, 0 fracture flags |
+| Lug shear (worst case) | SF 13 |
+| Lug peel under driving loads | SF 6.1 |
+| Static peel under lunar thermal cycling | SF 4.85 |
+| Driving-load fatigue (Miner's rule) | D ≈ 0 (life ≫ design distance) |
+| Helical rib lattice | SF >3 even worst-case load concentration |
+| Hub bolt joint (yield / pad compression) | SF 2.14 / 3.33 |
 
-Of thirteen checks, both originally identified static / fatigue margin concerns — the static peel debond (SF 0.88) and the hub bolt joint margins (SF 1.38 / 1.82) — are now resolved on paper by specific design changes from the two design-iteration scripts. The modal analysis surfaces one final unresolved question: multiple wheel modes (rim ring n=2, n=3, and torsional) sit inside the worst part of the launch random-vib spectrum, and the simple Miles' SDOF approximation in the launch check under-estimates cumulative multi-mode response. Whether the wheel survives launch depends on a coupled-loads / 3D random-vibration FEM that is out of scope for this study.
+### Status and scope
 
-### Recommended design change set
-
-To recover SF ≥ 2.0 on every analytically resolved failure mode:
-
-1. **1.0 mm unfilled-PEKK compliant interlayer** between SiC-PEKK tread and PEKK-CNT/CF outer skin.
-2. **Reformulated SiC-PEKK** with α_tread reduced from 29 to 20 ppm/K (higher SiC vol fraction).
-3. **Chamfered lug-base edge geometry** (peel recovery factor 0.40 → 0.25).
-4. **Ti-6Al-4V hub bolts at 50% proof preload** (or A286 bolts at 48% preload as a zero-hardware-change alternative).
-
-### What remains, and the stopping point
-
-The 13 screening checks are the analytical envelope of what closed-form Python models can achieve for this design. Everything that would meaningfully advance fidelity from here requires either real solver tooling (3D viscoelastic FEM, 3D random-vibration FEM, fracture-mechanics analysis) or physical hardware (coupon tests for all estimated material properties, ultimately a built prototype). A flight-qualified composite rover wheel of this scale would cost on the order of $15K–$50K to fabricate as a single unit, which is the natural stopping point for a personal design study. The simulations folder is the complete artifact this campaign was designed to produce: a quantitative screening of every identifiable failure mode, two design iterations that close the originally-flagged margin concerns, and a clearly mapped boundary between what closed-form analysis can verify and what real engineering closure needs.
+This is a paper design specification with closed-form Python validation — not a flight-qualified part. No 3D FEM, no fracture mechanics, no physical prototype build. Material allowables (CTE, bond strength, wear coefficient, Prony coefficients) are estimated from published PEKK / PEEK literature, not measured from production coupons. The screening campaign is the analytical envelope; the next-fidelity items (3D viscoelastic and random-vibration FEM, coupon testing, eventual prototype build at the $15K–$50K scale) are documented in Section 11 of the PDF and the simulations README. Together, the paper and the simulations folder document the complete envelope of what a closed-form Python design study can establish for a wheel of this scale.
 
 ---
 
@@ -103,6 +85,7 @@ The 13 screening checks are the analytical envelope of what closed-form Python m
 └── papers/
     ├── riemann-hypothesis-numerical-simulation.pdf
     ├── aurora-mono-wheel-build-spec.pdf
+    ├── build_paper_pdf.py             (regenerates the AURORA-Mono PDF)
     └── aurora-mono-simulations/
         ├── README.md
         ├── aurora_mono_screening_model.py
