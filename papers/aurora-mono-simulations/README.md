@@ -111,9 +111,41 @@ Screening check on the SiC-PEKK tread / PEKK-CNT/CF outer-skin co-molded bond. U
 
 Allowable shear is set at 20 MPa, derived conservatively as 40% of the low end of PEKK bulk shear strength (50 MPa). Anti-peel mechanical interlock from the keying grooves is **not** credited.
 
-**Verdict:** the lug-to-skin bond is not the limiting failure mode in pure shear. **Peel-mode loading is not analyzed by this check** — and peel is the mode the anti-peel keys are specifically designed to address. A peel analysis remains open work.
+**Verdict:** the lug-to-skin bond is not the limiting failure mode in pure shear. Peel-mode loading is analyzed separately in `peel_check.py` below.
 
 Outputs: [`lug_shear_check_results.csv`](lug_shear_check_results.csv).
+
+### Peel check — [`peel_check.py`](peel_check.py)
+
+The mode the anti-peel keys are specifically designed for. When the wheel crests a rock, the contact patch shifts to one edge of a lug, putting that lug under a bending moment that wants to lift its trailing edge.
+
+The model treats each lug as a rigid rectangular pad bonded to the skin and applies the per-lug normal load at a horizontal offset `e` from the centerline. The peak peel stress at the trailing edge follows from beam bending: `σ_peak = 6·M / (b·L²)`. This is compared against an effective allowable that combines the chemical bond strength (5 MPa, conservative for thermoplastic same-family co-mold) with a multiplier crediting the mechanical anti-peel keys (2.0× nominal).
+
+**Nominal cases** (chemical 5 MPa × 2.0× key multiplier = 10 MPa effective):
+
+| Case | Peak peel stress | Safety factor |
+|---|---|---|
+| Cruise, centered load (e = 0) | 0 MPa | ∞ |
+| Cruise, moderate eccentricity (e = L/4) | 0.17 MPa | 58.5 |
+| Cruise, worst eccentricity (e = L/2) | 0.34 MPa | 29.3 |
+| Worst rock event, moderate eccentricity | 0.82 MPa | 12.2 |
+| **Worst rock event, worst eccentricity (e = L/2)** | **1.64 MPa** | **6.1** |
+
+**Sensitivity** on the two most uncertain inputs (chemical allowable and key multiplier), at the worst-case load and offset:
+
+| Chemical allowable | Key multiplier | Effective allowable | SF (worst case) |
+|---|---|---|---|
+| 3 MPa | 1.0× (no key credit) | 3 MPa | 1.8 |
+| 5 MPa | 1.0× | 5 MPa | 3.0 |
+| 5 MPa | 2.0× (nominal) | 10 MPa | **6.1** |
+| 10 MPa | 2.0× | 20 MPa | 12.2 |
+| 15 MPa | 3.0× (optimistic) | 45 MPa | 27.4 |
+
+**Verdict:** adequate peel margin under nominal assumptions. The worst case in the entire sensitivity grid (no key credit + lowest plausible chemical allowable) still gives SF 1.8 — marginal but positive. Most realistic combinations yield SF 3–12.
+
+**This is a stress-based screening check, not fracture mechanics.** The correct next-fidelity step is a G_c-based crack-propagation analysis using a measured critical strain energy release rate for the actual co-mold bond, plus cycle-by-cycle fatigue accumulation under thermal cycling and rock-event loading.
+
+Outputs: [`peel_check_results.csv`](peel_check_results.csv) (the 5 named cases) and [`peel_check_sensitivity.csv`](peel_check_sensitivity.csv) (the 15-row grid).
 
 ## Files in this folder
 
@@ -127,6 +159,9 @@ aurora-mono-simulations/
 ├── sensitivity_sweep_results.csv          (20-row sweep result table)
 ├── lug_shear_check.py                     (bond-shear screening check)
 ├── lug_shear_check_results.csv            (lug-shear screening result)
+├── peel_check.py                          (bond-peel screening check)
+├── peel_check_results.csv                 (5 peel load/eccentricity cases)
+├── peel_check_sensitivity.csv             (15-row sensitivity grid)
 └── plots/
     ├── wear_vs_distance.png
     ├── safety_factor_running_min.png
@@ -151,13 +186,15 @@ A formal sensitivity sweep is not yet included.
 In rough order of impact:
 
 1. ~~Sensitivity sweep~~ — **added** (see `sensitivity_sweep.py`). Identified `instant_contact_fraction` as the dominant-but-uncertain parameter.
-2. ~~Lug-shear check~~ — **added** (see `lug_shear_check.py`). SF 13–27 in shear; the mode of concern shifts to peel.
-3. **Peel-mode bond check** at the SiC-PEKK / outer-skin interface — the anti-peel keys are specifically designed for this mode and the screening models do not yet evaluate it.
-4. **Miner's-rule fatigue accumulator** on the skin under cyclic loading — instantaneous SF > 1 is not the same as 1000 km of cyclic loading being safe.
-5. **Helical X-brace rib analysis** — the lattice is the wheel's structural load path and is not currently modeled.
-6. **Real thermal model** — radiation balance, 1D conduction through the sandwich wall, regolith contact, sun/shadow cycling.
-7. **Coupon-test wear coefficients** for SiC-PEKK against JSC-1A lunar regolith simulant, replacing the estimated `k(T)`.
-8. **Coupon-test bond shear strength** for the co-molded PEKK joint, replacing the estimated 20 MPa allowable used in the lug-shear check.
+2. ~~Lug-shear check~~ — **added** (see `lug_shear_check.py`). SF 13–27 in shear.
+3. ~~Peel-mode bond check~~ — **added** (see `peel_check.py`). SF 6.1 nominal at worst rock event + worst eccentricity; SF stays ≥1.8 across the full sensitivity grid.
+4. **Fracture-mechanics peel analysis** using G_c for the actual co-mold bond, replacing the stress-based screening check in `peel_check.py`.
+5. **Miner's-rule fatigue accumulator** on the skin and the bond under cyclic loading — instantaneous SF > 1 is not the same as 1000 km of cyclic loading being safe.
+6. **Thermal-cycling stress** at the SiC-PEKK / PEKK-CNT/CF interface from differential CTE, accumulated over the lunar diurnal cycle.
+7. **Helical X-brace rib analysis** — the lattice is the wheel's structural load path and is not currently modeled.
+8. **Real thermal model** — radiation balance, 1D conduction through the sandwich wall, regolith contact, sun/shadow cycling.
+9. **Coupon-test wear coefficients** for SiC-PEKK against JSC-1A lunar regolith simulant, replacing the estimated `k(T)`.
+10. **Coupon-test bond strength** (shear, peel, and G_c) for the co-molded PEKK joint, replacing the estimated allowables in `lug_shear_check.py` and `peel_check.py`.
 
 ## License
 

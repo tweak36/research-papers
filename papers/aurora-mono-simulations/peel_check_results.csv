@@ -1,0 +1,6 @@
+case,load_per_lug_N,eccentric_offset_mm,peak_peel_stress_MPa,effective_allowable_MPa,peel_SF
+"Cruise, centered (e = 0)",63.79,0.0,0.0,10.0,
+"Cruise, moderate eccentricity (e = L/4)",63.79,10.0,0.1709,10.0,58.53
+"Cruise, worst eccentricity (e = L/2)",63.79,20.0,0.3417,10.0,29.26
+"Worst rock event, moderate eccentricity (e = L/4)",306.18,10.0,0.8201,10.0,12.19
+"Worst rock event, worst eccentricity (e = L/2)",306.18,20.0,1.6402,10.0,6.1

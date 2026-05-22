@@ -66,11 +66,13 @@ A reproducible Python screening model runs 50,000 segments (20 m each = 1000 km 
 
 **Sensitivity sweep** (±50% / ±25% on the four dominant parameters): the design is robust on stress (min SF stays above 2.1 across all perturbations, zero fracture flags), but the wear answer is dominated by the `instant_contact_fraction` assumption — at the worst-case end of that assumption, predicted wear reaches 18 mm, exceeding the lug height. That assumption is the highest-priority unknown to measure.
 
-**Lug-shear check** at the SiC-PEKK / outer-skin co-molded bond: nominal SF 26.6, worst-plausible (single lug bearing all load) SF 13.3. Shear is not the limiting failure mode; peel-mode loading is not yet analyzed.
+**Lug-shear check** at the SiC-PEKK / outer-skin co-molded bond: nominal SF 26.6, worst-plausible (single lug bearing all load) SF 13.3. Shear is not the limiting failure mode.
 
-Full code, CSVs, plots, and complete documentation of what the screening models do **not** capture (no FEA, no real thermo, no fatigue, no peel analysis, no rib-lattice analysis): [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/).
+**Peel check** (the mode the anti-peel keys are designed for) — bending stress at the bond edge under eccentric loading from cresting a rock: SF 6.1 at the worst rock event with the load offset to the lug edge. SF stays ≥1.8 across a full sensitivity grid on the chemical allowable and key multiplier; SF 12–58 in any realistic non-extreme case.
 
-**Open work before this would be a real engineering artifact:** peel-mode bond check, Miner's-rule fatigue accumulator on the skin, FEA on the rib lattice under lunar loading, a real thermal model (radiation balance + 1D conduction), coupon-test wear coefficients against JSC-1A regolith simulant, coupon-test bond shear strength, prototype build and bench test.
+Full code, CSVs, plots, and complete documentation of what the screening models do **not** capture (no FEA, no fracture mechanics, no real thermo, no fatigue, no thermal-cycle stress, no rib-lattice analysis): [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/).
+
+**Open work before this would be a real engineering artifact:** fracture-mechanics peel analysis using measured G_c, Miner's-rule fatigue accumulator on the skin and bond, thermal-cycling stress from differential CTE, FEA on the rib lattice under lunar loading, a real thermal model (radiation balance + 1D conduction), coupon-test wear coefficients against JSC-1A regolith simulant, coupon-test bond strength, prototype build and bench test.
 
 ---
 
@@ -94,6 +96,9 @@ Full code, CSVs, plots, and complete documentation of what the screening models 
         ├── sensitivity_sweep_results.csv
         ├── lug_shear_check.py
         ├── lug_shear_check_results.csv
+        ├── peel_check.py
+        ├── peel_check_results.csv
+        ├── peel_check_sensitivity.csv
         └── plots/
             ├── wear_vs_distance.png
             ├── safety_factor_running_min.png
