@@ -1,0 +1,6 @@
+case,load_total_N,n_ribs_sharing,load_per_rib_N,rib_stress_MPa,yield_SF,buckling_SF
+"Static load, nominal patch (uniform sharing)",127.58,85,1.5,0.119,1343.21,1310.28
+"Max load, nominal patch (uniform sharing)",612.36,85,7.2,0.572,279.84,272.97
+"Max load, narrow patch (~30 mm circ → fewer ribs)",612.36,51,12.01,0.953,167.9,163.78
+"Max load, very narrow patch (~10 mm circ)",612.36,17,36.02,2.859,55.97,54.59
+"Max load, only 1 rib bears it (worst conceivable)",612.36,1,612.36,48.6,3.29,3.21

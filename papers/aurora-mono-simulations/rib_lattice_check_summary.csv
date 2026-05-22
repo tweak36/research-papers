@@ -1,0 +1,2 @@
+lattice_circumference_mm,lattice_width_mm,core_height_mm,n_ribs_total,helix_angle_deg,rib_web_thickness_mm,rib_cross_section_mm2,lattice_volume_fraction_pct,rib_slenderness_ratio,rib_buckling_regime,rib_critical_stress_MPa,rib_critical_load_N,G_lattice_effective_MPa,lattice_shear_allowable_MPa,avg_core_shear_max_load_MPa,lattice_shear_SF
+1311.05,203.2,7.0,48,35.0,1.8,12.6,8.05,13.472,Johnson (intermediate),156.08,1966.6,789.3,6.05,0.4305,14.0

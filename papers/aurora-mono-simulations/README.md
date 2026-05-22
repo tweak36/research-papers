@@ -6,11 +6,10 @@ A coordinated set of reproducible Python screening models for the [AURORA-Mono](
 
 **These are *screening* analyses, not qualification analyses.**
 
-- None of the checks here are finite element analysis. Stress checks use closed-form models (strip stress, beam bending, lumped-parameter viscoelasticity).
+- None of the checks here are finite element analysis. Stress checks use closed-form models (strip stress, beam bending, Euler/Johnson columns, lumped-parameter viscoelasticity).
 - Thermal input to the wear model is a prescribed temperature schedule, not a radiation/conduction simulation.
 - No fracture mechanics. No crack growth, no spallation prediction.
 - All material allowables — wear coefficient, bond strength (shear, peel, S-N), CTE, Prony coefficients — are estimated from published bulk PEKK / PEEK behavior, not measured for the actual SiC-PEKK and PEKK-CNT/CF formulations.
-- The helical X-brace rib lattice (the wheel's primary load path) is not modeled in any of the checks.
 - No prototype has been built or physically tested.
 
 The purpose is **design-direction screening**: confirm the wheel is in the right ballpark before committing to detailed simulation or test, and surface the assumptions that would dominate the answer at next fidelity.
@@ -278,6 +277,64 @@ This screening does not replace true 3D viscoelastic FEM with measured Prony coe
 
 Outputs: [`viscoelastic_relaxation_summary.csv`](viscoelastic_relaxation_summary.csv) and [`viscoelastic_relaxation_sensitivity.csv`](viscoelastic_relaxation_sensitivity.csv).
 
+## Helical rib lattice check — [`rib_lattice_check.py`](rib_lattice_check.py)
+
+The X-brace rib lattice between the inner and outer skins is the wheel's primary structural load path. Under wheel-ground contact, the lattice transfers shear from the outer skin (pushed inward at the contact patch) to the inner skin (constrained by the hub spokes).
+
+This check evaluates the lattice at screening fidelity using three complementary models:
+
+1. **Per-rib compressive stress** under tributary contact-patch loading, swept across contact patch lengths from 5 mm (very narrow) to 200 mm (full width).
+2. **Single-rib buckling** via Euler / Johnson short-column transition, treating each rib as a pin-ended strut spanning the 7 mm core height.
+3. **Effective sandwich-core shear** treating the lattice as a homogenized core of an equivalent sandwich panel.
+
+**Geometry from the build spec** (in `rib_lattice_check.py`):
+
+| Quantity | Value |
+|---|---|
+| Total ribs | 48 (24 at +35°, 24 at −35°) |
+| Helix angle (from axial) | 35° |
+| Rib web thickness × depth | 1.8 mm × 7.0 mm (core height) |
+| Per-rib cross-section area | 12.6 mm² |
+| Lattice volume fraction | **8.0%** (vs typical aerospace honeycomb at 1–5%) |
+
+**Single-rib buckling:**
+
+| Quantity | Value |
+|---|---|
+| Slenderness ratio (L/r) | 13.5 |
+| Cc transition | 60.8 |
+| Regime | Johnson (short column — yield governs over buckling) |
+| Critical stress | 156 MPa |
+| Critical load per rib | 1,967 N |
+
+**Per-rib stress under mission loads:**
+
+| Case | Load per rib | Stress | Yield SF | Buckling SF |
+|---|---|---|---|---|
+| Static load, nominal 50 mm patch (~85 ribs share) | 1.5 N | 0.12 MPa | 1,343 | 1,310 |
+| Max rock-event load, nominal patch | 7.2 N | 0.57 MPa | 280 | 273 |
+| Max load, narrow 30 mm patch | 12.0 N | 0.95 MPa | 168 | 164 |
+| Max load, very narrow 10 mm patch | 36.0 N | 2.86 MPa | 56 | 55 |
+| **Max load, worst conceivable (1 rib bears it all)** | **612 N** | **48.6 MPa** | **3.3** | **3.2** |
+
+**Effective sandwich-core shear:**
+
+| Quantity | Value |
+|---|---|
+| Avg core shear at max load (F / h_core·b) | 0.43 MPa |
+| Effective lattice shear modulus G_eff | 789 MPa |
+| Effective lattice shear allowable | 6.0 MPa |
+| **Lattice shear SF** | **14** |
+| Comparison: aerospace honeycomb | G_eff 50–300 MPa, τ_allow 0.5–3 MPa |
+
+![Rib lattice stress vs contact patch length](plots/rib_lattice_sensitivity.png)
+
+**Honest verdict.** The lattice has substantial margin in all checked load cases — yield SF and buckling SF both remain >3 even under the worst conceivable load concentration (full rock-event load on a single rib). The design is effectively over-built on this axis: the lattice volume fraction is 8% versus 1–5% for typical aerospace honeycomb, trading mass for redundancy and damage tolerance.
+
+This screening uses a uniform-load-sharing assumption with a conservative reduction to one-rib-bears-all in the worst case. **What this does NOT capture:** rib root joint stresses where ribs meet the skins (likely the real critical location), torque transfer through the lattice during driving/braking, lateral wheel loading, dynamic amplification under impact, and non-uniform stress concentrations at rib intersections. A 3D truss FEM (or solid FEM) of the lattice with the actual contact-patch pressure distribution would give per-rib stresses with correct distribution.
+
+Outputs: [`rib_lattice_check_summary.csv`](rib_lattice_check_summary.csv), [`rib_lattice_check_cases.csv`](rib_lattice_check_cases.csv), and [`rib_lattice_check_sensitivity.csv`](rib_lattice_check_sensitivity.csv).
+
 ## Files in this folder
 
 ```
@@ -302,6 +359,10 @@ aurora-mono-simulations/
 ├── viscoelastic_relaxation_check.py       (Prony-series upgrade, NOT FEM)
 ├── viscoelastic_relaxation_summary.csv    (3-cycle stress + fatigue result)
 ├── viscoelastic_relaxation_sensitivity.csv (Ea/R × permanent-term sweep)
+├── rib_lattice_check.py                   (helical X-brace lattice)
+├── rib_lattice_check_summary.csv          (geometry + buckling + shear summary)
+├── rib_lattice_check_cases.csv            (5 named per-rib load cases)
+├── rib_lattice_check_sensitivity.csv      (8-row contact-patch sweep)
 └── plots/
     ├── wear_vs_distance.png
     ├── safety_factor_running_min.png
@@ -310,7 +371,8 @@ aurora-mono-simulations/
     ├── sensitivity_min_sf.png
     ├── fatigue_stress_histograms.png
     ├── thermal_cycle_fatigue_life.png
-    └── viscoelastic_stress_trace.png
+    ├── viscoelastic_stress_trace.png
+    └── rib_lattice_sensitivity.png
 ```
 
 ## Open work — what would strengthen this at next fidelity
@@ -318,7 +380,7 @@ aurora-mono-simulations/
 In rough order of impact:
 
 1. **True 3D viscoelastic FEM** (FEniCS / ABAQUS / Calculix) of the lug-skin region under the diurnal cycle, with measured Prony coefficients. The actual next-fidelity step — resolves edge stresses properly, captures 3D constraint, and could either tighten or loosen the static-margin concern from the thermal-cycling check.
-2. **Helical X-brace rib lattice analysis** — the lattice is the wheel's primary structural load path and is not modeled by any current check.
+2. **Rib root joint analysis** — the lattice check treats ribs as pin-ended struts, but the most likely failure location in the lattice is where each rib bonds to a skin. A 3D truss FEM (or solid FEM) of the lattice with the actual contact-patch pressure distribution would give per-rib stresses with correct distribution and resolve joint stress concentrations.
 3. **Bolt-joint analysis** at the hub interface (8× #10-32 bolts): preload schedule, fatigue, fretting at the hub pad.
 4. **Launch-load analysis** — vibration spectrum (typically 0–2 kHz, three-axis random + sine) is not modeled.
 5. **Coupon-test CTE values** for the two formulations (the screening uses rule-of-mixtures estimates).

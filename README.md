@@ -55,7 +55,7 @@ A small collection of independent research papers by **William Duckworth**.
 
 ### Screening analyses
 
-Seven reproducible Python screening models live in [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/). Each has its own script, CSV outputs, and (where applicable) plots. The simulations README documents what every check does, doesn't, and means.
+Eight reproducible Python screening models live in [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/). Each has its own script, CSV outputs, and (where applicable) plots. The simulations README documents what every check does, doesn't, and means.
 
 | Check | Mode | Headline result |
 |---|---|---|
@@ -66,10 +66,11 @@ Seven reproducible Python screening models live in [`papers/aurora-mono-simulati
 | Miner's-rule fatigue (driving cycles) | Skin and bond fatigue over ~696,000 wheel rotations | D ≈ 0; life >7,200 km in worst sensitivity |
 | Thermal cycling (CTE mismatch) | Static peel from lunar diurnal swing | **Static SF 0.88 — the one sub-unity result** |
 | Viscoelastic relaxation (Prony + TTS, *not* FEM) | Refines the thermal check | Fatigue life ~247 years; static SF stays 0.88–0.92; failure mode is static debond on first cool-down |
+| Helical rib lattice | Per-rib stress, buckling, effective core shear | Yield/buckling SF >3 even with one rib bearing the full rock-event load; SF ~280 under uniform sharing |
 
-**Honest combined verdict.** Six of seven checks pass with comfortable margin. The thermal-cycling check identifies the dominant failure-mode candidate — static peel debond at the lug-to-skin bond on the first cool-down to lunar night — and the viscoelastic refinement confirms it isn't an artifact of ignoring creep relaxation. Design mitigation (compliant unfilled-PEKK interlayer, reformulated SiC-PEKK with lower CTE, edge geometry, thermal management) is required regardless of analysis fidelity.
+**Honest combined verdict.** Seven of eight checks pass with comfortable margin. The thermal-cycling check identifies the dominant failure-mode candidate — static peel debond at the lug-to-skin bond on the first cool-down to lunar night — and the viscoelastic refinement confirms it isn't an artifact of ignoring creep relaxation. Design mitigation (compliant unfilled-PEKK interlayer, reformulated SiC-PEKK with lower CTE, edge geometry, thermal management) is required regardless of analysis fidelity.
 
-**Open work before this would be a real engineering artifact:** true 3D viscoelastic FEM with measured Prony coefficients, helical X-brace rib lattice analysis (the wheel's primary load path is not modeled), bolt-joint analysis at the hub interface, launch-load analysis, coupon-test material properties (CTE, bond shear / peel / G_c / S-N, wear coefficient), a real thermal model (radiation balance + 1D conduction), fracture-mechanics peel analysis using measured G_c, design iteration on the static-peel mitigation, and physical prototype build and test.
+**Open work before this would be a real engineering artifact:** true 3D viscoelastic FEM with measured Prony coefficients, 3D truss/solid FEM of the rib lattice with realistic contact-patch pressure distribution, bolt-joint analysis at the hub interface, launch-load analysis, coupon-test material properties (CTE, bond shear / peel / G_c / S-N, wear coefficient), a real thermal model (radiation balance + 1D conduction), fracture-mechanics peel analysis using measured G_c, design iteration on the static-peel mitigation, and physical prototype build and test.
 
 ---
 
@@ -105,6 +106,10 @@ Seven reproducible Python screening models live in [`papers/aurora-mono-simulati
         ├── viscoelastic_relaxation_check.py
         ├── viscoelastic_relaxation_summary.csv
         ├── viscoelastic_relaxation_sensitivity.csv
+        ├── rib_lattice_check.py
+        ├── rib_lattice_check_summary.csv
+        ├── rib_lattice_check_cases.csv
+        ├── rib_lattice_check_sensitivity.csv
         └── plots/
             ├── wear_vs_distance.png
             ├── safety_factor_running_min.png
@@ -113,7 +118,8 @@ Seven reproducible Python screening models live in [`papers/aurora-mono-simulati
             ├── sensitivity_min_sf.png
             ├── fatigue_stress_histograms.png
             ├── thermal_cycle_fatigue_life.png
-            └── viscoelastic_stress_trace.png
+            ├── viscoelastic_stress_trace.png
+            └── rib_lattice_sensitivity.png
 ```
 
 ## Citing
