@@ -1,0 +1,10 @@
+material,preload_pct_of_proof,preload_N,bolt_tension_N,yield_SF,tensile_SF,shear_SF,separation_SF,pad_compression_MPa,pad_compression_SF
+A286 stainless (typical aerospace),0.5,5950.0,6041.8,1.925,2.317,40.91,27.76,62.76,2.55
+A286 stainless (typical aerospace),0.7,8330.0,8421.8,1.381,1.662,40.91,38.87,87.86,1.82
+A286 stainless (typical aerospace),0.9,10710.0,10801.8,1.077,1.296,40.91,49.97,112.97,1.42
+Ti-6Al-4V (lightweight),0.5,4558.5,4650.3,2.137,2.306,31.3,21.27,48.08,3.33
+Ti-6Al-4V (lightweight),0.7,6381.8,6473.7,1.535,1.657,31.3,29.78,67.32,2.38
+Ti-6Al-4V (lightweight),0.9,8205.2,8297.1,1.197,1.293,31.3,38.28,86.55,1.85
+316 stainless (corrosion-resistant),0.5,2783.1,2874.9,0.943,2.278,19.22,12.99,29.36,5.45
+316 stainless (corrosion-resistant),0.7,3896.3,3988.1,0.679,1.642,19.22,18.18,41.1,3.89
+316 stainless (corrosion-resistant),0.9,5009.5,5101.4,0.531,1.284,19.22,23.37,52.84,3.03

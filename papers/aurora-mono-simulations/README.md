@@ -335,6 +335,78 @@ This screening uses a uniform-load-sharing assumption with a conservative reduct
 
 Outputs: [`rib_lattice_check_summary.csv`](rib_lattice_check_summary.csv), [`rib_lattice_check_cases.csv`](rib_lattice_check_cases.csv), and [`rib_lattice_check_sensitivity.csv`](rib_lattice_check_sensitivity.csv).
 
+## Hub bolt joint check — [`bolt_joint_check.py`](bolt_joint_check.py)
+
+The wheel attaches to the suspension through 8× #10-32 UNF mounting bolts on a Ø 4.000 in bolt circle, plus 2 jack bolts and 2 alignment pins, all passing through a 6 mm composite (PEKK-CNT/CF) hub adapter plate with 12 mm Ø pad bosses at each hole.
+
+The joint sees four load components, decomposed onto the bolt pattern with uniform-sharing assumed:
+
+| Component | Source | Per-bolt effect |
+|---|---|---|
+| Radial load F_R | Wheel-ground contact (max 612 N) | Direct shear |
+| Drive torque T = F_R · μ · R (max 77 N·m) | Traction at the contact patch | Tangential shear at the bolt circle |
+| Lateral F_L (30% of F_R, cornering) | Side loading | Direct shear |
+| Axial moment M = F_R · offset | F_R acts at the wheel mid-plane, offset 102 mm from the bolt plane | Tension on the most-loaded bolts |
+
+**Per-bolt loads under the max rock event:**
+
+| Quantity | Value |
+|---|---|
+| Tension per bolt (worst position) | 306 N |
+| Shear per bolt (combined radial + torque) | 206 N |
+
+**Preloaded-bolt mechanics** — A286 stainless aerospace bolt at 70% of proof preload, joint stiffness ratio C = 0.30:
+
+| Quantity | Static cruise | Max rock event |
+|---|---|---|
+| Bolt tension F_b = F_i + C·F_e | 8,349 N | 8,422 N |
+| Bolt stress | 739 MPa | 746 MPa |
+| **Yield SF** (vs σ_y = 1,030 MPa) | **1.39** | **1.38** |
+| Tensile SF (vs σ_tu = 1,240 MPa) | 1.68 | 1.66 |
+| Shear SF (vs shear cap = 8,407 N) | 198 | 41 |
+| Separation SF (F_e_sep / F_e) | 187 | 39 |
+
+**Composite hub plate checks:**
+
+| Mode | Stress | Allowable | SF |
+|---|---|---|---|
+| Bolt-shank bearing on hole edge | 7.1 MPa | 200 MPa | 28 |
+| **Pad-boss compression under preload** | **88 MPa** | **160 MPa** | **1.8** |
+
+**Pin shear** (2× Ø 6.355 mm alignment pins, carbon steel): per-pin capacity 15.2 kN, worst-case demand 822 N if pins take 100% of shear → SF 19.
+
+**Sensitivity sweep** on bolt material and preload level (the two design knobs):
+
+| Material | Preload % | Yield SF | Separation SF | Pad SF |
+|---|---|---|---|---|
+| A286 stainless | 50% | 1.92 | 28 | 2.55 |
+| A286 stainless | **70%** (nominal) | **1.38** | **39** | **1.82** |
+| A286 stainless | 90% | 1.08 | 50 | 1.42 |
+| Ti-6Al-4V | 50% | 2.14 | 21 | 3.33 |
+| Ti-6Al-4V | 70% | 1.53 | 30 | 2.38 |
+| Ti-6Al-4V | 90% | 1.20 | 38 | 1.85 |
+| 316 stainless | 50–90% | **0.53–0.94** | 13–23 | 3.03–5.45 |
+
+**Honest verdict**
+
+The governing margin is the bolt yield SF at **1.38** (A286, nominal preload). That's marginal-but-positive — typical for preloaded bolts loaded near proof, and acceptable for screening. The **pad-boss compression SF of 1.82** is the more interesting concern: the composite under the 12 mm pad must support the bolt's clamping force at 88 MPa, comfortably below the 160 MPa compressive allowable but tight enough that creep relaxation at +127 °C would matter over a long mission.
+
+**Two engineering options to improve margin if needed:**
+
+- **Ti-6Al-4V bolts at 50% preload:** yield SF 2.14, pad SF 3.33. Also saves mass.
+- **Larger pad bosses (e.g. 16 mm Ø)** would directly increase pad SF without changing the bolt design.
+
+**316 stainless will not work for this joint** under any preload — yield SF drops below 1.0 because the 316SS yield strength is much lower than aerospace-grade alloys.
+
+**This check does NOT capture:**
+
+- **PEKK pad-boss creep under sustained preload at +127 °C** — would relax bolt clamp force over the lunar day, with knock-on effects on joint stiffness and bolt fatigue. The pad compression SF of 1.82 is initial-condition only.
+- Thermal cycling of the bolt (steel CTE 12 ppm/K vs PEKK-CNT/CF ~10 ppm/K vs SiC-PEKK ~29 ppm/K) cycling preload.
+- Bolt fatigue under wheel-rotation cyclic loading with proper Goodman analysis (preload dominates, but worth confirming).
+- 3D FEM resolution of non-uniform load sharing across the 8 bolts.
+
+Outputs: [`bolt_joint_check_summary.csv`](bolt_joint_check_summary.csv) and [`bolt_joint_check_sensitivity.csv`](bolt_joint_check_sensitivity.csv).
+
 ## Files in this folder
 
 ```
@@ -363,6 +435,9 @@ aurora-mono-simulations/
 ├── rib_lattice_check_summary.csv          (geometry + buckling + shear summary)
 ├── rib_lattice_check_cases.csv            (5 named per-rib load cases)
 ├── rib_lattice_check_sensitivity.csv      (8-row contact-patch sweep)
+├── bolt_joint_check.py                    (hub bolt joint mechanics)
+├── bolt_joint_check_summary.csv           (per-bolt + plate + pin summary)
+├── bolt_joint_check_sensitivity.csv       (9-row material × preload sweep)
 └── plots/
     ├── wear_vs_distance.png
     ├── safety_factor_running_min.png
@@ -381,7 +456,7 @@ In rough order of impact:
 
 1. **True 3D viscoelastic FEM** (FEniCS / ABAQUS / Calculix) of the lug-skin region under the diurnal cycle, with measured Prony coefficients. The actual next-fidelity step — resolves edge stresses properly, captures 3D constraint, and could either tighten or loosen the static-margin concern from the thermal-cycling check.
 2. **Rib root joint analysis** — the lattice check treats ribs as pin-ended struts, but the most likely failure location in the lattice is where each rib bonds to a skin. A 3D truss FEM (or solid FEM) of the lattice with the actual contact-patch pressure distribution would give per-rib stresses with correct distribution and resolve joint stress concentrations.
-3. **Bolt-joint analysis** at the hub interface (8× #10-32 bolts): preload schedule, fatigue, fretting at the hub pad.
+3. **Bolt joint creep + fatigue under thermal cycling** — the screening bolt-joint check is initial-condition only. PEKK pad-boss creep at +127 °C would relax preload over a long mission, and full Goodman fatigue analysis under wheel-rotation cycles is recommended.
 4. **Launch-load analysis** — vibration spectrum (typically 0–2 kHz, three-axis random + sine) is not modeled.
 5. **Coupon-test CTE values** for the two formulations (the screening uses rule-of-mixtures estimates).
 6. **Coupon-test bond strength** (shear, peel, G_c, S-N) for the co-molded PEKK joint, replacing the estimated allowables.
