@@ -28,7 +28,7 @@ Material properties (ESTIMATED, not measured for the actual formulations):
     (CF-dominated in-plane CTE for CNT/CF-reinforced PEKK)
   Differential alpha = 19 ppm/K (nominal)
 
-Bond allowables (from peel_check.py):
+Bond allowables (conservative thermoplastic co-mold estimate):
   Chemical bond:      5 MPa
   Anti-peel key x:    2.0
   Effective static:  10 MPa
@@ -78,7 +78,7 @@ CYCLES_PER_YEAR = 365.25 / LUNAR_DAY_DAYS  # ~12.4
 # viscoelastic relaxation). 1.0 = no relaxation, fully constrained.
 PEEL_RECOVERY_NOMINAL = 0.40
 
-# --- Bond allowables (matching peel_check.py / fatigue_check.py) ---
+# --- Bond allowables ---
 BOND_CHEMICAL_MPa = 5.0
 ANTI_PEEL_KEY_MULTIPLIER = 2.0
 BOND_EFFECTIVE_PEEL_MPa = BOND_CHEMICAL_MPa * ANTI_PEEL_KEY_MULTIPLIER

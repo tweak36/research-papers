@@ -30,7 +30,7 @@ Stress per cycle:
   Skin   -> per-segment local_stress_MPa from the screening model
   Bond   -> per-segment peak peel stress computed from per-lug normal load
             and an assumed eccentric-load offset: L/4 for cruise, L/2 for
-            rock events (matching the peel-check model).
+            rock events.
 
 Limitations:
 - S-N curves are generic thermoplastic estimates, NOT measured coupon

@@ -42,7 +42,7 @@ A small collection of independent research papers by **William Duckworth**.
 
 > A paper design study for a one-piece composite rover wheel engineered to the MicroChariot interface envelope. The design pairs a carbon-nanotube-reinforced PEKK structural cage with a silicon-carbide-filled PEKK wear tread, joined by a co-molded mechanical and chemical bond.
 
-**Status:** Paper design + first-order Python screening analysis (see [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/)). No FEA, no fatigue analysis, no physical prototype. Wear coefficients, contact assumptions, and the thermal schedule are estimated — not derived from coupon tests or a true thermal model. Intended for design-direction screening, not qualification.
+**Status:** Paper design plus a coordinated set of first-order Python screening analyses (see [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/)). No FEA, no fracture mechanics, no physical prototype. Material allowables and contact assumptions are estimated, not derived from coupon tests. Intended for design-direction screening, not qualification.
 
 **Highlights**
 
@@ -53,32 +53,23 @@ A small collection of independent research papers by **William Duckworth**.
 - **Mass target (design intent):** 2.21–2.30 kg, with ~80–120 g optimization margin identified.
 - Includes tolerances, a proposed manufacturing sequence (additive core → autoclave skins → machining → compression-molded tread → top-coat → NDI), and a full critical-dimensions table.
 
-### Screening analysis
+### Screening analyses
 
-A reproducible Python screening model runs 50,000 segments (20 m each = 1000 km total) of stochastic lunar driving and reports cumulative wear, a local strip-stress safety factor, and traction margin under temperature-modulated wear coefficients. Headline numbers from the nominal run:
+Seven reproducible Python screening models live in [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/). Each has its own script, CSV outputs, and (where applicable) plots. The simulations README documents what every check does, doesn't, and means.
 
-| Metric | Value |
-|---|---|
-| Final cumulative wear | 9.0 mm (of 9.0 mm nominal lug height) |
-| Minimum safety factor | 3.14 |
-| Fracture flags (SF < 1) | 0 |
-| Min traction margin on a 20° slope | μ = +0.036 (positive) |
+| Check | Mode | Headline result |
+|---|---|---|
+| Strip stress (main screening model) | Skin tensile under impact | Min SF 3.14, 0 fracture flags |
+| Sensitivity sweep | Robustness of wear and SF to dominant parameters | Min SF >2.1 across ±50%; wear sensitive to contact-fraction assumption |
+| Lug shear | SiC-PEKK / skin bond in shear | SF 13–27 |
+| Lug peel (driving loads) | SiC-PEKK / skin bond peel from eccentric load | SF 6.1 nominal, ≥1.8 across full sensitivity |
+| Miner's-rule fatigue (driving cycles) | Skin and bond fatigue over ~696,000 wheel rotations | D ≈ 0; life >7,200 km in worst sensitivity |
+| Thermal cycling (CTE mismatch) | Static peel from lunar diurnal swing | **Static SF 0.88 — the one sub-unity result** |
+| Viscoelastic relaxation (Prony + TTS, *not* FEM) | Refines the thermal check | Fatigue life ~247 years; static SF stays 0.88–0.92; failure mode is static debond on first cool-down |
 
-**Sensitivity sweep** (±50% / ±25% on the four dominant parameters): the design is robust on stress (min SF stays above 2.1 across all perturbations, zero fracture flags), but the wear answer is dominated by the `instant_contact_fraction` assumption — at the worst-case end of that assumption, predicted wear reaches 18 mm, exceeding the lug height. That assumption is the highest-priority unknown to measure.
+**Honest combined verdict.** Six of seven checks pass with comfortable margin. The thermal-cycling check identifies the dominant failure-mode candidate — static peel debond at the lug-to-skin bond on the first cool-down to lunar night — and the viscoelastic refinement confirms it isn't an artifact of ignoring creep relaxation. Design mitigation (compliant unfilled-PEKK interlayer, reformulated SiC-PEKK with lower CTE, edge geometry, thermal management) is required regardless of analysis fidelity.
 
-**Lug-shear check** at the SiC-PEKK / outer-skin co-molded bond: nominal SF 26.6, worst-plausible (single lug bearing all load) SF 13.3. Shear is not the limiting failure mode.
-
-**Peel check** (the mode the anti-peel keys are designed for) — bending stress at the bond edge under eccentric loading from cresting a rock: SF 6.1 at the worst rock event with the load offset to the lug edge. SF stays ≥1.8 across a full sensitivity grid on the chemical allowable and key multiplier; SF 12–58 in any realistic non-extreme case.
-
-**Fatigue check** — Miner's-rule cumulative damage on both skin and bond peel across ~696,000 wheel-rotation cycles over 1000 km. Every cycle, on both components, falls below the assumed endurance limit. Total damage = 0 nominally; even the most adverse sensitivity combination gives fatigue life >7,200 km vs 1,000 km design distance. Driving-load fatigue is not the governing failure mode.
-
-**Thermal-cycling check** — *the screening check that surfaces a real margin concern.* The lunar diurnal swing (ΔT ≈ 300 K) drives differential thermal expansion between the SiC-PEKK tread and PEKK-CNT/CF skin. Under nominal estimated CTE values, the constrained-strain peak peel stress at lug edges is ~11 MPa — slightly above the bond's static allowable (~10 MPa). Static SF = 0.88.
-
-**Viscoelastic relaxation screening** (1D Prony-series PEKK with Arrhenius TTS — *not* finite element analysis) refines this picture significantly. Hot-dwell relaxation cuts the cycle stress amplitude in half, so **fatigue life jumps from ~15 days to ~247 years**. But the cool-down phase happens at cold temperatures where Prony relaxation is essentially frozen, so the **peak static stress is essentially unchanged** — SF stays at 0.89 across a full sensitivity grid on Arrhenius temperature sensitivity and permanent-term Prony weight. The failure mode is therefore **static debond on first cool-down**, not fatigue. Design mitigation (compliant interlayer, reformulated SiC-PEKK, edge geometry, thermal management) is required regardless of analysis fidelity; true 3D viscoelastic FEM with measured Prony coefficients remains the next-fidelity step.
-
-Full code, CSVs, plots, and complete documentation of what the screening models do **not** capture (no FEM, no fracture mechanics, no real thermo, no rib-lattice analysis): [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/).
-
-**Open work before this would be a real engineering artifact:** true 3D viscoelastic FEM with measured Prony coefficients, fracture-mechanics peel analysis using measured G_c, FEA on the rib lattice under lunar loading, a real thermal model (radiation balance + 1D conduction), coupon-test wear coefficients against JSC-1A regolith simulant, coupon-test bond strength (CTE / shear / peel / G_c / S-N), prototype build and bench test, and a design iteration evaluating compliant-interlayer or reformulated-tread mitigations for the static peel failure mode.
+**Open work before this would be a real engineering artifact:** true 3D viscoelastic FEM with measured Prony coefficients, helical X-brace rib lattice analysis (the wheel's primary load path is not modeled), bolt-joint analysis at the hub interface, launch-load analysis, coupon-test material properties (CTE, bond shear / peel / G_c / S-N, wear coefficient), a real thermal model (radiation balance + 1D conduction), fracture-mechanics peel analysis using measured G_c, design iteration on the static-peel mitigation, and physical prototype build and test.
 
 ---
 

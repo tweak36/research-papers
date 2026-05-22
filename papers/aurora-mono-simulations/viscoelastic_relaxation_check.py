@@ -222,7 +222,7 @@ def simulate_cycle(num_cycles=3, prony=PRONY, Ea_over_R=10000.0):
 
 
 # ============================================================
-# Fatigue / SF math (consistent with prior scripts)
+# Fatigue / SF math
 # ============================================================
 
 BOND_EFFECTIVE_PEEL_MPa = 10.0
