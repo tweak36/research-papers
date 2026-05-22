@@ -1,0 +1,2 @@
+wheel_mass_kg,qs_axial_g,qs_lateral_g,psd_nominal_g2_per_Hz,Q,f_n_estimate_Hz,G_3sigma_at_f_n_Hz,F_axial_QS_N,F_lateral_QS_N,F_rv_nominal_N,F_axial_combined_N,F_lateral_combined_N,tension_per_bolt_QS_N,shear_per_bolt_QS_N,tension_per_bolt_combined_N,shear_per_bolt_combined_N,yield_SF_QS,yield_SF_combined,pad_SF_QS,pad_SF_combined
+2.3,6.0,3.0,0.04,10.0,14.8,9.13,135.38,67.69,206.09,246.58,216.92,50.77,8.46,139.28,27.12,1.393,1.389,1.821,1.821

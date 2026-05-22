@@ -407,6 +407,72 @@ The governing margin is the bolt yield SF at **1.38** (A286, nominal preload). T
 
 Outputs: [`bolt_joint_check_summary.csv`](bolt_joint_check_summary.csv) and [`bolt_joint_check_sensitivity.csv`](bolt_joint_check_sensitivity.csv).
 
+## Launch-load check — [`launch_load_check.py`](launch_load_check.py)
+
+Spaceflight hardware typically sees three classes of launch load: quasi-static (4–8 g sustained), random vibration (broadband 20–2000 Hz, reacted as Miles' equivalent static load), and pyro shock (short, high-frequency — not analyzed here). The wheel sees these as inertial reactions on its 2.30 kg mass, transmitted through the hub bolt joint.
+
+**Launch envelope:**
+
+| Load class | Level |
+|---|---|
+| QS axial (along launch direction) | 6.0 g |
+| QS lateral | 3.0 g |
+| Random vib (nominal payload PSD, flat) | 0.04 g²/Hz |
+| Random vib (aggressive qual) | 0.10 g²/Hz |
+| Damping ratio / Q | 0.05 / Q = 10 |
+
+**First-mode estimate** (wheel as a lumped mass on the 6 composite hub web spokes, each treated as a parallel cantilever beam):
+
+| Quantity | Value |
+|---|---|
+| Spoke length (hub pilot to inner rim) | 163 mm |
+| Spoke average thickness | 4.0 mm |
+| Stiffness per spoke (radial bending) | 3.3 N/mm |
+| Total stiffness (6 spokes ∥) | 19.8 N/mm |
+| **First mode estimate** | **~15 Hz** |
+
+**Note on the 15 Hz result:** That's low — below the typical 100 Hz threshold for launch hardware. The estimate uses a worst-direction cantilever bending model, which is conservative; a real modal analysis with realistic suspension boundary conditions would likely give a higher number. Still, the spoke compliance is the dominant flexibility and a real value <100 Hz is plausible.
+
+**Hub bolt joint SFs under launch loads** (A286 stainless, 70% preload):
+
+| Case | Tension/bolt | Shear/bolt | Yield SF | Separation SF | Pad SF |
+|---|---|---|---|---|---|
+| QS only | 51 N | 9 N | 1.39 | 234 | 1.82 |
+| QS + Miles RV (nominal PSD, f_n = 15 Hz) | 139 N | 27 N | 1.39 | 85 | 1.82 |
+
+**Comparison — launch vs operational driving:**
+
+| Per-bolt load | Worst rock event (operational) | QS launch | QS + RV launch |
+|---|---|---|---|
+| Tension | 306 N | 51 N | 139 N |
+| Shear | 77 N | 9 N | 27 N |
+
+**Driving loads dominate**, not launch — the wheel mass is small enough (2.3 kg) that 6 g axial plus reasonable random-vib amplification doesn't exceed the per-bolt tension already imposed by a max-rock event during driving. The bolt yield SF stays at 1.39 (governed by preload) and pad SF at 1.82 in either load case.
+
+**Sensitivity** on first natural frequency at three PSD levels:
+
+| f_n (Hz) | G_3σ (PSD low) | G_3σ (PSD nom) | G_3σ (PSD high) | Yield SF | Pad SF |
+|---|---|---|---|---|---|
+| 50 | 8.4 g | 16.8 g | 26.6 g | 1.38 | 1.82 |
+| 100 | 11.9 g | 23.8 g | 37.6 g | 1.38 | 1.82 |
+| 500 | 26.6 g | 53.2 g | 84.1 g | 1.36 | 1.82 |
+| 2000 | 53.2 g | 106.3 g | 168.1 g | 1.32 | 1.82 |
+
+The bolt yield SF barely moves across the sweep because the bolt preload (8.3 kN) dominates the external launch loads (a few hundred N at most). The pad compression SF is also preload-dominated and doesn't depend on external load.
+
+![Launch random-vib equivalent G vs natural frequency](plots/launch_load_miles.png)
+
+**Honest verdict.** Launch loads do **not** govern this wheel design — operational driving loads are larger on a per-bolt basis. The bolt joint margins from the operational check (yield SF 1.38, pad SF 1.82) are not made worse by launch. The 15 Hz first-mode estimate is the one flag worth following up: it's below the typical 100 Hz launch threshold and could result in resonance amplification not captured by this Miles' screening; a real modal analysis with rover suspension restraint is the next step.
+
+**This check does NOT cover:**
+
+- Lattice and skin response to distributed inertial body loads under launch g-levels (only the hub joint is checked here)
+- Modal analysis with realistic suspension boundary conditions
+- Pyro shock, acoustic loading
+- Coupled-loads analysis with the launch vehicle's response
+
+Outputs: [`launch_load_check_summary.csv`](launch_load_check_summary.csv) and [`launch_load_check_sensitivity.csv`](launch_load_check_sensitivity.csv).
+
 ## Files in this folder
 
 ```
@@ -438,6 +504,9 @@ aurora-mono-simulations/
 ├── bolt_joint_check.py                    (hub bolt joint mechanics)
 ├── bolt_joint_check_summary.csv           (per-bolt + plate + pin summary)
 ├── bolt_joint_check_sensitivity.csv       (9-row material × preload sweep)
+├── launch_load_check.py                   (QS + Miles random vib)
+├── launch_load_check_summary.csv          (combined launch case summary)
+├── launch_load_check_sensitivity.csv      (6-row f_n × PSD sweep)
 └── plots/
     ├── wear_vs_distance.png
     ├── safety_factor_running_min.png
@@ -447,7 +516,8 @@ aurora-mono-simulations/
     ├── fatigue_stress_histograms.png
     ├── thermal_cycle_fatigue_life.png
     ├── viscoelastic_stress_trace.png
-    └── rib_lattice_sensitivity.png
+    ├── rib_lattice_sensitivity.png
+    └── launch_load_miles.png
 ```
 
 ## Open work — what would strengthen this at next fidelity
@@ -457,7 +527,8 @@ In rough order of impact:
 1. **True 3D viscoelastic FEM** (FEniCS / ABAQUS / Calculix) of the lug-skin region under the diurnal cycle, with measured Prony coefficients. The actual next-fidelity step — resolves edge stresses properly, captures 3D constraint, and could either tighten or loosen the static-margin concern from the thermal-cycling check.
 2. **Rib root joint analysis** — the lattice check treats ribs as pin-ended struts, but the most likely failure location in the lattice is where each rib bonds to a skin. A 3D truss FEM (or solid FEM) of the lattice with the actual contact-patch pressure distribution would give per-rib stresses with correct distribution and resolve joint stress concentrations.
 3. **Bolt joint creep + fatigue under thermal cycling** — the screening bolt-joint check is initial-condition only. PEKK pad-boss creep at +127 °C would relax preload over a long mission, and full Goodman fatigue analysis under wheel-rotation cycles is recommended.
-4. **Launch-load analysis** — vibration spectrum (typically 0–2 kHz, three-axis random + sine) is not modeled.
+4. **Modal analysis with realistic suspension boundary conditions** — the launch-load check estimates the wheel's first mode at ~15 Hz from a free spoke-bending model, which is below the typical 100 Hz launch-hardware threshold. A real modal analysis would refine this and determine whether resonance amplification at the rover-suspension level is a concern.
+5. **Lattice and skin response to distributed inertial body loads under launch** — the launch check only covers the hub joint.
 5. **Coupon-test CTE values** for the two formulations (the screening uses rule-of-mixtures estimates).
 6. **Coupon-test bond strength** (shear, peel, G_c, S-N) for the co-molded PEKK joint, replacing the estimated allowables.
 7. **Coupon-test wear coefficients** for SiC-PEKK against JSC-1A lunar regolith simulant.
