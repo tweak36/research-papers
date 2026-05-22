@@ -4,29 +4,15 @@ A small collection of independent research papers by **William Duckworth**.
 
 | # | Title | Topic | Date | PDF |
 |---|-------|-------|------|-----|
-| 1 | Deciphering Beale Cipher 1: A Comprehensive Statistical and Geographical Analysis | Cryptography / History | Feb 2025 | [PDF](papers/deciphering-beale-cipher-1.pdf) |
-| 2 | Numerical Simulation of the Riemann Hypothesis: Impact of Zero Distribution on Prime Number Distribution | Number Theory / Computation | Jan 2025 | [PDF](papers/riemann-hypothesis-numerical-simulation.pdf) |
-| 3 | AURORA-Mono (One-Piece) Rover Wheel — Build Specification | Mechanical / Aerospace Engineering | 2026 | [PDF](papers/aurora-mono-wheel-build-spec.pdf) |
+| 1 | Numerical Simulation of the Riemann Hypothesis: Impact of Zero Distribution on Prime Number Distribution | Number Theory / Computation | Jan 2025 | [PDF](papers/riemann-hypothesis-numerical-simulation.pdf) |
+| 2 | AURORA-Mono (One-Piece) Rover Wheel — Build Specification | Mechanical / Aerospace Engineering | 2026 | [PDF](papers/aurora-mono-wheel-build-spec.pdf) |
+
+> Other independent work lives in its own repository:
+> - **Beale Cipher 1 — exploratory analysis:** [tweak36/beale-cipher-1-analysis](https://github.com/tweak36/beale-cipher-1-analysis)
 
 ---
 
-## 1. Deciphering Beale Cipher 1
-
-**[Read the PDF](papers/deciphering-beale-cipher-1.pdf)** · 7 pages
-
-> A statistical and geographical analysis of Beale Cipher 1, proposing that two halves of the cipher encode latitude (**371221**) and longitude (**792316**) digits pointing into Bedford County, Virginia.
-
-**Status:** Exploratory hobbyist analysis. The result depends on a chosen two-digit segmentation and on selecting which halves are read as which coordinate, so it is vulnerable to multiple-comparison concerns. It should be read as a thought experiment, not as a solved cipher.
-
-**Highlights**
-
-- Justifies a two-digit segmentation approach as historically plausible for a 19th-century cipher.
-- Uses statistical modeling (accounting for digit correlations) to estimate the probability of meaningful DMS values appearing by chance.
-- Cross-references the already-solved Cipher 2, which states that "Paper number '1' describes the exact locality of the vault."
-
----
-
-## 2. Numerical Simulation of the Riemann Hypothesis
+## 1. Numerical Simulation of the Riemann Hypothesis
 
 **[Read the PDF](papers/riemann-hypothesis-numerical-simulation.pdf)** · 13 pages
 
@@ -42,7 +28,7 @@ A small collection of independent research papers by **William Duckworth**.
 
 ---
 
-## 3. AURORA-Mono (One-Piece) Rover Wheel — Build Specification
+## 2. AURORA-Mono (One-Piece) Rover Wheel — Build Specification
 
 **[Read the PDF](papers/aurora-mono-wheel-build-spec.pdf)** · 4 pages
 
@@ -69,16 +55,13 @@ A small collection of independent research papers by **William Duckworth**.
 .
 ├── README.md
 └── papers/
-    ├── deciphering-beale-cipher-1.pdf
     ├── riemann-hypothesis-numerical-simulation.pdf
     └── aurora-mono-wheel-build-spec.pdf
 ```
 
 ## Citing
 
-If you reference any of these papers, please cite as:
-
-> Duckworth, W. *Deciphering Beale Cipher 1: A Comprehensive Statistical and Geographical Analysis.* 2025.
+If you reference either paper, please cite as:
 
 > Duckworth, W. *Numerical Simulation of the Riemann Hypothesis: Impact of Zero Distribution on Prime Number Distribution.* 2025.
 
