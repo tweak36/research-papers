@@ -55,7 +55,7 @@ A small collection of independent research papers by **William Duckworth**.
 
 ### Screening analyses
 
-Ten reproducible Python screening models live in [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/). Each has its own script, CSV outputs, and (where applicable) plots. The simulations README documents what every check does, doesn't, and means.
+Eleven reproducible Python screening models live in [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/). Each has its own script, CSV outputs, and (where applicable) plots. The simulations README documents what every check does, doesn't, and means.
 
 | Check | Mode | Headline result |
 |---|---|---|
@@ -64,15 +64,16 @@ Ten reproducible Python screening models live in [`papers/aurora-mono-simulation
 | Lug shear | SiC-PEKK / skin bond in shear | SF 13–27 |
 | Lug peel (driving loads) | SiC-PEKK / skin bond peel from eccentric load | SF 6.1 nominal, ≥1.8 across full sensitivity |
 | Miner's-rule fatigue (driving cycles) | Skin and bond fatigue over ~696,000 wheel rotations | D ≈ 0; life >7,200 km in worst sensitivity |
-| Thermal cycling (CTE mismatch) | Static peel from lunar diurnal swing | **Static SF 0.88 — sub-unity result** |
+| Thermal cycling (CTE mismatch) | Static peel from lunar diurnal swing | **Static SF 0.88 — baseline sub-unity result** |
 | Viscoelastic relaxation (Prony + TTS, *not* FEM) | Refines the thermal check | Fatigue life ~247 years; static SF stays 0.88–0.92; failure mode is static debond on first cool-down |
 | Helical rib lattice | Per-rib stress, buckling, effective core shear | Yield/buckling SF >3 even with one rib bearing the full rock-event load; SF ~280 under uniform sharing |
 | Hub bolt joint | Preloaded bolts, shear, bearing, pad-boss compression | **Yield SF 1.38, pad-boss compression SF 1.82** — marginal-but-positive |
 | Launch load (QS + Miles random vib) | Hub joint under 6g QS + random-vib equivalent | Launch loads do not govern — operational driving loads are larger per bolt; first-mode estimate of ~15 Hz is the one flag |
+| Design iteration on static peel | Evaluate mitigations against the SF 0.88 baseline | Recommended stack (1.0 mm interlayer + reformulated tread + edge geometry) recovers **SF 4.85**, a 5.5× improvement |
 
-**Honest combined verdict.** Seven of ten checks pass with comfortable margin. The thermal-cycling check identifies the dominant failure-mode candidate — static peel debond at the lug-to-skin bond on the first cool-down to lunar night, with the viscoelastic refinement confirming it isn't an artifact of ignoring creep relaxation. The hub bolt joint runs at marginal-but-positive SFs (1.38–1.82) under nominal assumptions; selecting Ti-6Al-4V bolts or larger pad bosses would push both margins above 2.0. Launch loads do not govern any check (the wheel is small enough at 2.3 kg that operational driving loads exceed launch inertial reactions), though the estimated 15 Hz first natural frequency is below typical launch-hardware thresholds and worth confirming with a real modal analysis.
+**Honest combined verdict.** Of eleven checks, the original concern (static peel SF 0.88 from thermal cycling) is now resolved on paper by the recommended design stack from the design-iteration check, which lifts SF to 4.85. The remaining concern is the hub bolt joint at marginal-but-positive SFs (1.38–1.82); switching to Ti-6Al-4V bolts or larger pad bosses would push both margins above 2.0. Launch loads do not govern any check (the wheel is small enough at 2.3 kg that operational driving loads exceed launch inertial reactions), though the estimated 15 Hz first natural frequency is below typical launch-hardware thresholds and worth confirming with a real modal analysis. The design-iteration recommendation itself still needs validation by 3D viscoelastic FEM with the proposed interlayer in place and coupon-test peel data for the modified material stack.
 
-**Open work before this would be a real engineering artifact:** true 3D viscoelastic FEM with measured Prony coefficients, 3D truss/solid FEM of the rib lattice with realistic contact-patch pressure distribution, bolt-joint creep + fatigue under lunar thermal cycling, modal analysis with rover-suspension boundary conditions, lattice and skin response to distributed inertial body loads under launch, coupon-test material properties (CTE, bond shear / peel / G_c / S-N, wear coefficient), a real thermal model (radiation balance + 1D conduction), fracture-mechanics peel analysis using measured G_c, design iteration on the static-peel mitigation, and physical prototype build and test.
+**Open work before this would be a real engineering artifact:** validation of the recommended design stack via 3D viscoelastic FEM + coupon tests; 3D truss/solid FEM of the rib lattice with realistic contact-patch pressure distribution; bolt-joint creep + fatigue under lunar thermal cycling; modal analysis with rover-suspension boundary conditions; lattice and skin response to distributed inertial body loads under launch; coupon-test material properties (CTE, bond shear / peel / G_c / S-N, wear coefficient); a real thermal model (radiation balance + 1D conduction); fracture-mechanics peel analysis using measured G_c; physical prototype build and test.
 
 ---
 
@@ -118,6 +119,9 @@ Ten reproducible Python screening models live in [`papers/aurora-mono-simulation
         ├── launch_load_check.py
         ├── launch_load_check_summary.csv
         ├── launch_load_check_sensitivity.csv
+        ├── design_iteration_check.py
+        ├── design_iteration_alone.csv
+        ├── design_iteration_combos.csv
         └── plots/
             ├── wear_vs_distance.png
             ├── safety_factor_running_min.png
@@ -128,7 +132,8 @@ Ten reproducible Python screening models live in [`papers/aurora-mono-simulation
             ├── thermal_cycle_fatigue_life.png
             ├── viscoelastic_stress_trace.png
             ├── rib_lattice_sensitivity.png
-            └── launch_load_miles.png
+            ├── launch_load_miles.png
+            └── design_iteration_sf_vs_interlayer.png
 ```
 
 ## Citing

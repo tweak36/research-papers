@@ -473,6 +473,78 @@ The bolt yield SF barely moves across the sweep because the bolt preload (8.3 kN
 
 Outputs: [`launch_load_check_summary.csv`](launch_load_check_summary.csv) and [`launch_load_check_sensitivity.csv`](launch_load_check_sensitivity.csv).
 
+## Design iteration on the static-peel mitigation — [`design_iteration_check.py`](design_iteration_check.py)
+
+The thermal-cycle and viscoelastic-relaxation checks identified a static peel SF of 0.88 at the lug-to-skin bond on the first cool-down — the dominant identified failure-mode candidate. This script evaluates five design mitigations, alone and in combination, against the goal of recovering peel SF ≥ 1.5.
+
+**Mitigations modeled:**
+
+| ID | Mitigation | Parameter change |
+|---|---|---|
+| (A) | Compliant unfilled-PEKK interlayer between tread and skin | thickness, 0.25–2.0 mm |
+| (B) | Reformulated SiC-PEKK with higher SiC vol fraction | α_tread: 29 → 20 ppm/K |
+| (C) | Lower-CTE skin under lugs | α_skin: 10 → 8 ppm/K |
+| (D) | Edge geometry (chamfered lug bases) | peel recovery: 0.40 → 0.25 |
+| (E) | Active/passive thermal management | ΔT: 300 → 200 K |
+
+Compliant-interlayer effect on edge peel uses a Hart-Smith-style shear-lag heuristic calibrated to ~50% reduction at 1.0 mm interlayer thickness — consistent with published behavior for thermoplastic shim layers.
+
+**Each mitigation alone:**
+
+| Mitigation | Edge peel | SF | Meets target (≥1.5)? |
+|---|---|---|---|
+| Baseline (no mitigation) | 11.40 MPa | **0.88** | ✗ |
+| (A) +0.5 mm interlayer | 8.09 MPa | 1.24 | ✗ |
+| (A) +1.0 mm interlayer | 6.26 MPa | **1.60** | ✓ |
+| (A) +1.5 mm interlayer | 5.11 MPa | 1.96 | ✓ |
+| (A) +2.0 mm interlayer | 4.32 MPa | 2.32 | ✓ |
+| (B) Reformulated tread | 6.00 MPa | **1.67** | ✓ |
+| (C) Lower-CTE skin | 12.60 MPa | **0.79** | ✗ — makes it *worse* |
+| (D) Edge geometry | 7.12 MPa | 1.40 | ✗ (close) |
+| (E) Thermal management | 7.60 MPa | 1.32 | ✗ |
+
+**Note on (C):** lowering the skin CTE *increases* the differential Δα (from 19 to 21 ppm/K) since the skin is already the lower-CTE layer. The screening model correctly catches this — the mitigation as originally listed in the thermal-cycle check was wrong in direction; the right intent was probably "more compliant skin" via lower modulus, not lower CTE. (C) is therefore retired from the recommendation stack.
+
+**Combinations (stacked mitigations):**
+
+| Stack | Edge peel | SF |
+|---|---|---|
+| (A, 1.0 mm) + (D) edge geometry | 3.92 MPa | 2.55 |
+| (A, 1.0 mm) + (B) reformulated tread | 3.30 MPa | 3.03 |
+| (A, 1.0 mm) + (B) + (D) | **2.06 MPa** | **4.85** |
+| (B) + (D) (no interlayer) | 3.75 MPa | 2.67 |
+| (B) + (D) + (E) | 2.50 MPa | 4.00 |
+| All five (A=1.0 mm, B, C, D, E) | 1.65 MPa | 6.07 |
+
+**Minimum stacks that hit SF ≥ 1.5:**
+
+| Candidate | Required parameters | SF |
+|---|---|---|
+| (A) alone | 0.90 mm interlayer | 1.52 |
+| (A) + (D) | 0.25 mm interlayer + edge geometry | 1.69 |
+| (B) + (D), no interlayer | reformulated tread + edge geometry | 2.67 |
+| (D) + (E), no interlayer or reformulation | edge geometry + thermal management | 2.10 |
+
+![Static-peel SF vs interlayer thickness, for different combinations](plots/design_iteration_sf_vs_interlayer.png)
+
+**Recommendation: stack (A 1.0 mm) + (B reformulated) + (D edge geometry)**
+
+| Quantity | Value |
+|---|---|
+| Static peel SF | **4.85** (5.5× improvement over baseline) |
+| Edge peel stress | 2.06 MPa |
+| Margin vs bond endurance (2.5 MPa) | below — fatigue also resolved |
+
+**Rough impact of the recommended stack:**
+
+- **Mass:** ~50–100 g per wheel of unfilled-PEKK interlayer
+- **Process:** adds one molding step for the interlayer; reformulated tread requires SiC loading and process tuning
+- **Cost:** modest increase in tread material cost; minor tooling change for edge geometry
+
+This recommendation should be validated by 3D viscoelastic FEM with the proposed interlayer in place, coupon-test peel data for the SiC-PEKK / unfilled-PEKK / PEKK-CNT/CF stack, and re-running the bond-shear, lug-peel, and fatigue checks with the new layer included.
+
+Outputs: [`design_iteration_alone.csv`](design_iteration_alone.csv) and [`design_iteration_combos.csv`](design_iteration_combos.csv).
+
 ## Files in this folder
 
 ```
@@ -507,6 +579,9 @@ aurora-mono-simulations/
 ├── launch_load_check.py                   (QS + Miles random vib)
 ├── launch_load_check_summary.csv          (combined launch case summary)
 ├── launch_load_check_sensitivity.csv      (6-row f_n × PSD sweep)
+├── design_iteration_check.py              (static-peel mitigation stack)
+├── design_iteration_alone.csv             (each mitigation alone)
+├── design_iteration_combos.csv            (stacked combinations)
 └── plots/
     ├── wear_vs_distance.png
     ├── safety_factor_running_min.png
@@ -517,7 +592,8 @@ aurora-mono-simulations/
     ├── thermal_cycle_fatigue_life.png
     ├── viscoelastic_stress_trace.png
     ├── rib_lattice_sensitivity.png
-    └── launch_load_miles.png
+    ├── launch_load_miles.png
+    └── design_iteration_sf_vs_interlayer.png
 ```
 
 ## Open work — what would strengthen this at next fidelity
@@ -534,7 +610,7 @@ In rough order of impact:
 7. **Coupon-test wear coefficients** for SiC-PEKK against JSC-1A lunar regolith simulant.
 8. **Fracture-mechanics peel analysis** using G_c (Paris-law crack growth) for the actual co-mold bond.
 9. **Real thermal model** — radiation balance, 1D conduction through the sandwich wall, regolith contact, sun/shadow cycling.
-10. **Design iteration** — evaluate a compliant interlayer (unfilled PEKK), reformulated SiC-PEKK, or edge geometry mitigations targeting the static peel failure mode identified by the thermal-cycling and viscoelastic checks.
+10. **Validation of the recommended design stack** (1.0 mm interlayer + reformulated tread + edge geometry) via 3D viscoelastic FEM, coupon-test peel data for the SiC-PEKK / unfilled-PEKK / PEKK-CNT/CF stack, and re-running the bond-shear, lug-peel, and fatigue checks with the new layer included. The design iteration check shows the proposed mitigations recover SF ~5; physical validation is still required.
 11. **Steering / scrub loads** if the rover steers.
 12. **Radiation environment** — UV, GCR, SPE degradation on PEKK over mission life.
 13. **Physical prototype build and bench test.** No analysis replaces it.

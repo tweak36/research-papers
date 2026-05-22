@@ -1,0 +1,9 @@
+label,t_interlayer_mm,alpha_tread_ppm_K,alpha_skin_ppm_K,peel_recovery,delta_T_K,interlayer_factor,edge_peel_MPa,static_SF
+(A) +0.5 mm unfilled-PEKK interlayer,0.5,29.0,10.0,0.4,300.0,0.7092198581560284,8.085,1.237
+(A) +1.0 mm unfilled-PEKK interlayer,1.0,29.0,10.0,0.4,300.0,0.5494505494505495,6.264,1.596
+(A) +1.5 mm unfilled-PEKK interlayer,1.5,29.0,10.0,0.4,300.0,0.4484304932735426,5.112,1.956
+(A) +2.0 mm unfilled-PEKK interlayer,2.0,29.0,10.0,0.4,300.0,0.37878787878787884,4.318,2.316
+(B) Reformulated SiC-PEKK (alpha_tread 29 -> 20 ppm/K),0.0,20.0,10.0,0.4,300.0,1.0,6.0,1.667
+(C) Lower-CTE skin under lugs (alpha_skin 10 -> 8 ppm/K),0.0,29.0,8.0,0.4,300.0,1.0,12.6,0.794
+(D) Edge geometry mitigation (recovery 0.40 -> 0.25),0.0,29.0,10.0,0.25,300.0,1.0,7.125,1.404
+(E) Thermal management (delta_T 300 -> 200 K),0.0,29.0,10.0,0.4,200.0,1.0,7.6,1.316
