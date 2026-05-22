@@ -32,9 +32,13 @@ A small collection of independent research papers by **William Duckworth**.
 
 **[Read the PDF](papers/aurora-mono-wheel-build-spec.pdf)** · 4 pages
 
+![AURORA-Mono rendered overview — front view, side view, cross-section, hub pattern, wall construction, tread lug detail, and key specifications table](images/aurora-mono-overview.png)
+
+*Rendered overview: front and side views of the wheel, through-center cross-section showing the X-brace helical lattice, plus detail callouts for the hub pattern, spoke webs, wall construction, tread lug geometry, inboard debris ports, anti-peel keys, and the full key-specifications table.*
+
 ![AURORA-Mono build specification drawing — side elevation, vertical cross-section, and materials/dimensions callouts](images/aurora-mono-build-spec.png)
 
-*Build specification drawing AURORA-MONO-B-01 (Rev 2026-02-15): side elevation of the full wheel showing the chevron lug pattern at 16.800 in rim OD / 18.000 in OD over lugs, vertical cross-section B-B showing the sandwich wall construction with the ±35° X-brace helical rib lattice, and materials / rim-wall / spoke / mass-target callouts.*
+*Build specification drawing AURORA-MONO-B-01 (Rev 2026-02-15): side elevation of the full wheel at 16.800 in rim OD / 18.000 in OD over lugs, vertical cross-section B-B showing the sandwich wall construction with the ±35° X-brace helical rib lattice, and materials / rim-wall / spoke / mass-target callouts.*
 
 > A paper design study for a one-piece composite rover wheel engineered to the MicroChariot interface envelope. The design pairs a carbon-nanotube-reinforced PEKK structural cage with a silicon-carbide-filled PEKK wear tread, joined by a co-molded mechanical and chemical bond.
 
@@ -59,6 +63,7 @@ A small collection of independent research papers by **William Duckworth**.
 .
 ├── README.md
 ├── images/
+│   ├── aurora-mono-overview.png
 │   └── aurora-mono-build-spec.png
 └── papers/
     ├── riemann-hypothesis-numerical-simulation.pdf
