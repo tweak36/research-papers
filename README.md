@@ -55,7 +55,7 @@ A small collection of independent research papers by **William Duckworth**.
 
 ### Screening analyses
 
-Twelve reproducible Python screening models live in [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/). Each has its own script, CSV outputs, and (where applicable) plots. The simulations README documents what every check does, doesn't, and means.
+Thirteen reproducible Python screening models live in [`papers/aurora-mono-simulations/`](papers/aurora-mono-simulations/). Each has its own script, CSV outputs, and (where applicable) plots. The simulations README documents what every check does, doesn't, and means.
 
 | Check | Mode | Headline result |
 |---|---|---|
@@ -68,13 +68,27 @@ Twelve reproducible Python screening models live in [`papers/aurora-mono-simulat
 | Viscoelastic relaxation (Prony + TTS, *not* FEM) | Refines the thermal check | Fatigue life ~247 years; static SF stays 0.88–0.92; failure mode is static debond on first cool-down |
 | Helical rib lattice | Per-rib stress, buckling, effective core shear | Yield/buckling SF >3 even with one rib bearing the full rock-event load; SF ~280 under uniform sharing |
 | Hub bolt joint | Preloaded bolts, shear, bearing, pad-boss compression | **Yield SF 1.38, pad-boss compression SF 1.82 — baseline marginal-but-positive** |
-| Launch load (QS + Miles random vib) | Hub joint under 6g QS + random-vib equivalent | Launch loads do not govern — operational driving loads are larger per bolt; first-mode estimate of ~15 Hz is the one flag |
+| Launch load (QS + Miles random vib) | Hub joint under 6g QS + random-vib equivalent | Launch loads do not govern at the wheel's 2.3 kg mass — operational driving loads are larger per bolt |
 | Design iteration on static peel | Mitigations against SF 0.88 baseline | Recommended stack (1.0 mm interlayer + reformulated tread + edge geometry) recovers **SF 4.85**, a 5.5× improvement |
 | Design iteration on bolt joint | Mitigations against SF 1.38 / 1.82 baseline | Recommended stack (Ti-6Al-4V bolts at 50% preload) recovers **yield SF 2.14, pad SF 3.33** |
+| Modal analysis (ring + spoke + torsional) | Wheel natural frequencies vs launch spectrum | **3 of 6 modes inside 50–800 Hz launch peak band**; rim n=2 at 173 Hz, n=3 at 490 Hz, torsional at 128 Hz |
 
-**Honest combined verdict.** Of twelve checks, both originally identified margin concerns — the static peel debond (SF 0.88) and the hub bolt joint margins (SF 1.38 / 1.82) — are now resolved on paper by specific design changes from the two iteration scripts. The full recommended set: **(1) 1.0 mm unfilled-PEKK compliant interlayer between tread and skin, (2) reformulated SiC-PEKK with α_tread reduced to 20 ppm/K, (3) chamfered lug-base edge geometry, (4) Ti-6Al-4V hub bolts at 50% proof preload.** With these changes the wheel meets SF ≥ 2.0 on all checked failure modes and SF ≥ 1.5 on the static-peel mode. Launch loads don't govern any check at the wheel's 2.3 kg mass. The remaining open work is validation: 3D viscoelastic FEM with measured Prony coefficients, modal analysis with the rover suspension, coupon tests for all estimated material properties, and physical prototype build and test.
+### Final combined verdict
 
-**Open work before this would be a real engineering artifact:** validation of the recommended design stacks (static-peel and bolt-joint) via 3D viscoelastic FEM + coupon tests; 3D truss/solid FEM of the rib lattice with realistic contact-patch pressure distribution; bolt-joint creep + fatigue under lunar thermal cycling (the iteration check is initial-condition only); modal analysis with rover-suspension boundary conditions; lattice and skin response to distributed inertial body loads under launch; coupon-test material properties (CTE, bond shear / peel / G_c / S-N, wear coefficient); a real thermal model (radiation balance + 1D conduction); fracture-mechanics peel analysis using measured G_c; physical prototype build and test.
+Of thirteen checks, both originally identified static / fatigue margin concerns — the static peel debond (SF 0.88) and the hub bolt joint margins (SF 1.38 / 1.82) — are now resolved on paper by specific design changes from the two design-iteration scripts. The modal analysis surfaces one final unresolved question: multiple wheel modes (rim ring n=2, n=3, and torsional) sit inside the worst part of the launch random-vib spectrum, and the simple Miles' SDOF approximation in the launch check under-estimates cumulative multi-mode response. Whether the wheel survives launch depends on a coupled-loads / 3D random-vibration FEM that is out of scope for this study.
+
+### Recommended design change set
+
+To recover SF ≥ 2.0 on every analytically resolved failure mode:
+
+1. **1.0 mm unfilled-PEKK compliant interlayer** between SiC-PEKK tread and PEKK-CNT/CF outer skin.
+2. **Reformulated SiC-PEKK** with α_tread reduced from 29 to 20 ppm/K (higher SiC vol fraction).
+3. **Chamfered lug-base edge geometry** (peel recovery factor 0.40 → 0.25).
+4. **Ti-6Al-4V hub bolts at 50% proof preload** (or A286 bolts at 48% preload as a zero-hardware-change alternative).
+
+### What remains, and the stopping point
+
+The 13 screening checks are the analytical envelope of what closed-form Python models can achieve for this design. Everything that would meaningfully advance fidelity from here requires either real solver tooling (3D viscoelastic FEM, 3D random-vibration FEM, fracture-mechanics analysis) or physical hardware (coupon tests for all estimated material properties, ultimately a built prototype). A flight-qualified composite rover wheel of this scale would cost on the order of $15K–$50K to fabricate as a single unit, which is the natural stopping point for a personal design study. The simulations folder is the complete artifact this campaign was designed to produce: a quantitative screening of every identifiable failure mode, two design iterations that close the originally-flagged margin concerns, and a clearly mapped boundary between what closed-form analysis can verify and what real engineering closure needs.
 
 ---
 
@@ -126,6 +140,9 @@ Twelve reproducible Python screening models live in [`papers/aurora-mono-simulat
         ├── bolt_joint_iteration_check.py
         ├── bolt_joint_iteration_alone.csv
         ├── bolt_joint_iteration_combos.csv
+        ├── modal_analysis_check.py
+        ├── modal_analysis_summary.csv
+        ├── modal_analysis_suspension_sensitivity.csv
         └── plots/
             ├── wear_vs_distance.png
             ├── safety_factor_running_min.png
@@ -138,7 +155,8 @@ Twelve reproducible Python screening models live in [`papers/aurora-mono-simulat
             ├── rib_lattice_sensitivity.png
             ├── launch_load_miles.png
             ├── design_iteration_sf_vs_interlayer.png
-            └── bolt_joint_iteration.png
+            ├── bolt_joint_iteration.png
+            └── modal_on_launch_spectrum.png
 ```
 
 ## Citing

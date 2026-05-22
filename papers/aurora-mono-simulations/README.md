@@ -620,6 +620,51 @@ The simplest valid alternative — and the one with least design churn — is **
 
 Outputs: [`bolt_joint_iteration_alone.csv`](bolt_joint_iteration_alone.csv) and [`bolt_joint_iteration_combos.csv`](bolt_joint_iteration_combos.csv).
 
+## Modal analysis screening — [`modal_analysis_check.py`](modal_analysis_check.py)
+
+The launch-load check estimated a single first-mode frequency (~15 Hz) using a lumped-mass-on-spokes model and concluded launch loads don't govern at the wheel-mass scale. This modal screening enumerates multiple wheel modes from closed-form formulas, compares them against the launch random-vib spectrum, and reports the Miles' 3σ response at each.
+
+**Modes evaluated:**
+
+| Mode | Source |
+|---|---|
+| Spoke bending (translational) | Lumped wheel mass on 6 spokes as parallel cantilever beams |
+| Rim ring modes n=2, 3, 4 | Love/Soedel thin-ring formula: `ω_n = (n(n²−1)/√(n²+1)) · √(EI / (m'R⁴))` |
+| Rim torsional (first) | Spokes in tangential bending + rim polar moment of inertia |
+
+**Estimated frequencies and Miles' response** (nominal launch PSD = 0.04 g²/Hz, Q = 10):
+
+| Mode | f_n (Hz) | Miles 3σ (g) | In 50–800 Hz damaging band? |
+|---|---|---|---|
+| Spoke bending, free spokes (soft mount) | 14.8 | 9.1 | no |
+| Spoke bending, fixed-fixed (stiff mount) | 29.5 | 12.9 | no |
+| **Rim torsional, first** | **127.8** | **26.9** | **YES** |
+| **Rim ring n=2 (ovalization)** | **173.1** | **31.3** | **YES** |
+| **Rim ring n=3 (triangular)** | **489.7** | **52.6** | **YES** |
+| Rim ring n=4 (square) | 938.9 | 72.9 | no |
+
+**Suspension-stiffness sensitivity** (spoke-bending mode only):
+
+| Boundary factor | Interpretation | f_spoke (Hz) |
+|---|---|---|
+| 3.0 | Free at rim end (cantilever) — soft mount | 14.8 |
+| 6.0 | Intermediate (typical bolted joint) | 20.9 |
+| 12.0 | Fixed-fixed (stiff rigid mount) — upper bound | 29.5 |
+
+![Estimated wheel modes on a typical launch PSD envelope](plots/modal_on_launch_spectrum.png)
+
+**Honest verdict**
+
+**Three of six estimated modes (rim torsional, rim n=2, rim n=3) sit inside the 50–800 Hz launch-spectrum peak band.** This is a stronger finding than the launch-load check's lumped-mass result suggested. The launch check looked only at the spoke-bending mode at the bottom of the spectrum (~15–30 Hz); the rim itself has multiple modes in the worst part of the band.
+
+The SDOF Miles' approximation gives 27–53 g equivalent static loads at these modes. For a 2.3 kg wheel that's roughly 600–1200 N of equivalent inertial force per mode — comparable to or exceeding the worst rock-event driving load. The SDOF approximation under-estimates cumulative multi-mode response, so the real total would be larger.
+
+**Conclusion:** the bolt joint margins re-checked against the actual modal-coupled launch loads might *not* close at the joint-iteration recommended (M Ti + P 50%) values. This is the strongest argument for true 3D random-vibration FEM and a coupled-loads analysis with the rover suspension before clearing this design for launch.
+
+**This check is closed-form, not 3D eigenanalysis.** Mode shapes, mode coupling, realistic boundary conditions, and damping beyond a single Q-value are all approximations. The numerical frequencies should be read as order-of-magnitude estimates: rim n=2 is "somewhere in the 100–300 Hz neighborhood," not exactly 173 Hz.
+
+Outputs: [`modal_analysis_summary.csv`](modal_analysis_summary.csv) and [`modal_analysis_suspension_sensitivity.csv`](modal_analysis_suspension_sensitivity.csv).
+
 ## Files in this folder
 
 ```
@@ -660,6 +705,9 @@ aurora-mono-simulations/
 ├── bolt_joint_iteration_check.py          (bolt-joint mitigation stack)
 ├── bolt_joint_iteration_alone.csv         (each change alone)
 ├── bolt_joint_iteration_combos.csv        (stacked combinations)
+├── modal_analysis_check.py                (closed-form ring + spoke modes)
+├── modal_analysis_summary.csv             (6-mode summary)
+├── modal_analysis_suspension_sensitivity.csv (3-row spoke-mode sensitivity)
 └── plots/
     ├── wear_vs_distance.png
     ├── safety_factor_running_min.png
@@ -672,27 +720,43 @@ aurora-mono-simulations/
     ├── rib_lattice_sensitivity.png
     ├── launch_load_miles.png
     ├── design_iteration_sf_vs_interlayer.png
-    └── bolt_joint_iteration.png
+    ├── bolt_joint_iteration.png
+    └── modal_on_launch_spectrum.png
 ```
 
-## Open work — what would strengthen this at next fidelity
+## Open work
 
-In rough order of impact:
+This screening campaign is the analytical envelope of what closed-form Python models can achieve for this design. The next-fidelity items below all require either real solver tooling, coupon-test data, or physical hardware — none of which are in scope for this study.
 
-1. **True 3D viscoelastic FEM** (FEniCS / ABAQUS / Calculix) of the lug-skin region under the diurnal cycle, with measured Prony coefficients. The actual next-fidelity step — resolves edge stresses properly, captures 3D constraint, and could either tighten or loosen the static-margin concern from the thermal-cycling check.
-2. **Rib root joint analysis** — the lattice check treats ribs as pin-ended struts, but the most likely failure location in the lattice is where each rib bonds to a skin. A 3D truss FEM (or solid FEM) of the lattice with the actual contact-patch pressure distribution would give per-rib stresses with correct distribution and resolve joint stress concentrations.
-3. **Bolt joint creep + fatigue under thermal cycling** — the bolt-joint and bolt-joint-iteration checks are initial-condition only. PEKK pad-boss creep at +127 °C would relax preload over a long mission, and full Goodman fatigue analysis under wheel-rotation cycles is recommended. This concern persists for both the baseline and the recommended (M Ti) + (P 50%) joint.
-4. **Modal analysis with realistic suspension boundary conditions** — the launch-load check estimates the wheel's first mode at ~15 Hz from a free spoke-bending model, which is below the typical 100 Hz launch-hardware threshold. A real modal analysis would refine this and determine whether resonance amplification at the rover-suspension level is a concern.
-5. **Lattice and skin response to distributed inertial body loads under launch** — the launch check only covers the hub joint.
-5. **Coupon-test CTE values** for the two formulations (the screening uses rule-of-mixtures estimates).
-6. **Coupon-test bond strength** (shear, peel, G_c, S-N) for the co-molded PEKK joint, replacing the estimated allowables.
-7. **Coupon-test wear coefficients** for SiC-PEKK against JSC-1A lunar regolith simulant.
-8. **Fracture-mechanics peel analysis** using G_c (Paris-law crack growth) for the actual co-mold bond.
-9. **Real thermal model** — radiation balance, 1D conduction through the sandwich wall, regolith contact, sun/shadow cycling.
-10. **Validation of the recommended design stack** (1.0 mm interlayer + reformulated tread + edge geometry) via 3D viscoelastic FEM, coupon-test peel data for the SiC-PEKK / unfilled-PEKK / PEKK-CNT/CF stack, and re-running the bond-shear, lug-peel, and fatigue checks with the new layer included. The design iteration check shows the proposed mitigations recover SF ~5; physical validation is still required.
-11. **Steering / scrub loads** if the rover steers.
-12. **Radiation environment** — UV, GCR, SPE degradation on PEKK over mission life.
-13. **Physical prototype build and bench test.** No analysis replaces it.
+**FEM / coupled-loads work:**
+
+1. **3D viscoelastic FEM** of the lug-skin region under the diurnal cycle, with measured Prony coefficients — convicts or acquits the SF 0.88 static-peel concern.
+2. **3D random-vibration FEM or coupled-loads analysis with the rover suspension** — three wheel modes sit inside the 50–800 Hz launch peak band per the modal screening; the SDOF Miles' approximation under-estimates cumulative multi-mode response.
+3. **3D truss/solid FEM of the rib lattice** with realistic contact-patch pressure distribution — the lattice screening treats ribs as pin-ended struts; the real critical location is the rib-to-skin joint.
+4. **Fracture-mechanics peel analysis** using G_c (Paris-law crack growth) for the actual co-mold bond, replacing the stress-based peel screening.
+5. **Bolt joint creep + fatigue under thermal cycling** — the bolt-joint screening is initial-condition only; PEKK pad-boss creep at +127 °C would relax preload over a long mission.
+
+**Coupon tests** for properties currently estimated from bulk PEEK / PEKK literature:
+
+6. CTE values for SiC-PEKK and PEKK-CNT/CF in the actual production formulations.
+7. Co-mold bond strength (shear, peel, G_c, S-N) for the SiC-PEKK / PEKK-CNT/CF interface — and the proposed unfilled-PEKK interlayer stack.
+8. Wear coefficient for SiC-PEKK against JSC-1A lunar regolith simulant.
+9. Prony-series relaxation coefficients for the actual SiC-PEKK formulation.
+
+**Validation of the recommended design changes:**
+
+10. Re-run the bond-shear, lug-peel, and fatigue checks with the recommended (1.0 mm unfilled-PEKK interlayer + reformulated SiC-PEKK + chamfered lug edges) layup in place.
+11. Re-run the bolt-joint and launch-load checks with the recommended (Ti-6Al-4V bolts at 50% proof preload) joint.
+
+**Operational scope not yet checked:**
+
+12. Steering / scrub loads if the rover steers.
+13. Radiation environment — UV, GCR, SPE degradation on PEKK over mission life.
+14. A real thermal model (radiation balance + 1D conduction + regolith contact + sun/shadow cycling), replacing the prescribed temperature schedule used in the main screening model.
+
+**Hardware:**
+
+15. **Physical prototype build and bench test.** Out of scope for this study. Fabrication cost for a single qualified composite wheel is estimated in the $15K–$50K range (PEKK feedstock, autoclave time, custom chevron compression mold, NDI) — not achievable on a hobby budget and not the point of a screening campaign.
 
 ## License
 

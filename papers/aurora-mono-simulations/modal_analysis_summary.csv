@@ -1,0 +1,7 @@
+mode,f_n_Hz,G_3sigma_g_nominal_PSD,in_50_800_Hz_band,F_inertial_N_at_wheel_mass
+"Spoke bending, free (cantilever) — launch-check baseline",14.75,9.13,False,206.1
+"Spoke bending, clamped (stiff suspension upper bound)",29.51,12.92,False,291.5
+Rim ring mode n=2 (ovalization),173.12,31.29,True,706.0
+Rim ring mode n=3 (triangular),489.67,52.62,True,1187.3
+Rim ring mode n=4 (square),938.9,72.87,False,1644.1
+"Rim torsional, first mode",127.77,26.88,True,606.5

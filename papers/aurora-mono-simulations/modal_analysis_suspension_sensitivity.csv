@@ -1,0 +1,4 @@
+boundary_factor,interpretation,f_spoke_Hz
+3.0,Free at rim end (cantilever) -- soft mount,14.75
+6.0,Intermediate (typical bolted joint),20.86
+12.0,Fixed-fixed (stiff rigid mount) -- upper bound,29.51
